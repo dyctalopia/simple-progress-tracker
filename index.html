@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Progress Tracker</title>
+  <style>
+    /* ========================================
+       Reset & Base
+    ======================================== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* ========================================
+       Design Tokens
+    ======================================== */
+    :root {
+      --bg:        #0f1115;
+      --surface:   #171a20;
+      --border:    #252830;
+      --text-pri:  #e8e8e8;
+      --text-sec:  #6b7280;
+      --done-text: #6b7280;
+      --green:     #22c55e;
+      --orange:    #f59e0b;
+      --red:       #ef4444;
+      --font:      "Inter", "Noto Sans TC", system-ui, sans-serif;
+    }
+
+    /* ========================================
+       Page
+    ======================================== */
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text-pri);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    .label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--text-sec);
+      margin-bottom: 24px;
+    }
+
+    /* ========================================
+       Timeline
+    ======================================== */
+    .timeline {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    /* ========================================
+       Phase Card
+    ======================================== */
+    .phase {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      padding-top: 22px;
+      min-width: 148px;
+      max-width: 200px;
+      text-align: center;
+      flex: 1 1 148px;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      user-select: none;
+    }
+
+    .phase .checkbox {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+    }
+
+    .phase .checkbox input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      background: transparent;
+      appearance: none;
+      -webkit-appearance: none;
+      position: relative;
+      transition: border-color 0.15s;
+    }
+
+    /* ::after fills the box when checked */
+    .phase .checkbox input[type="checkbox"]::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      transition: transform 0.15s, background-color 0.15s;
+    }
+
+    .phase .checkbox input[type="checkbox"]:checked::after {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* Status: checkbox border matches card status */
+    .phase.done    .checkbox input[type="checkbox"]                               { border-color: var(--border); }
+    .phase.done    .checkbox input[type="checkbox"]:checked::after                  { background-color: var(--border); }
+    .phase.current .checkbox input[type="checkbox"]                                { border-color: var(--green); }
+    .phase.current .checkbox input[type="checkbox"]:checked::after                  { background-color: var(--green); }
+    .phase.warning .checkbox input[type="checkbox"]                                { border-color: var(--orange); }
+    .phase.warning .checkbox input[type="checkbox"]:checked::after                  { background-color: var(--orange); }
+    .phase.urgent  .checkbox input[type="checkbox"]                                { border-color: var(--red); }
+    .phase.urgent  .checkbox input[type="checkbox"]:checked::after                 { background-color: var(--red); }
+
+    /* Card content */
+    .phase .title     { font-size: 0.875rem; font-weight: 600; color: var(--text-pri); margin-bottom: 4px; }
+    .phase .date      { font-size: 0.65rem;   color: var(--text-sec); margin-bottom: 10px; }
+    .phase .header    { font-size: 0.65rem;   font-weight: 600; letter-spacing: 0.08em; color: var(--text-sec); margin-bottom: 0; }
+    .phase .days      { font-size: 2.2rem;    font-weight: 700; line-height: 1; color: var(--text-sec); margin-bottom: 2px; }
+    .phase .days-unit { font-size: 0.6rem;    font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-sec); }
+
+    /* ========================================
+       Status Styles
+    ======================================== */
+    .phase.done {
+      border-color: var(--border);
+    }
+    .phase.done .title  { color: var(--done-text); }
+    .phase.done .header { color: var(--done-text); }
+
+    .phase.current {
+      border-color: var(--green);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.15);
+    }
+    .phase.current .header { color: var(--green); }
+    .phase.current .days   { color: var(--green); }
+
+    .phase.warning {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.12);
+    }
+    .phase.warning .header { color: var(--orange); }
+    .phase.warning .days   { color: var(--orange); }
+
+    .phase.urgent {
+      border-color: var(--red);
+      box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.15);
+    }
+    .phase.urgent .header { color: var(--red); }
+    .phase.urgent .days   { color: var(--red); }
+
+    /* ========================================
+       Responsive
+    ======================================== */
+    @media (max-width: 540px) {
+      .phase {
+        min-width: 130px;
+        flex: 1 1 130px;
+        padding: 12px 14px;
+        padding-top: 20px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .timeline { justify-content: center; }
+      .phase {
+        min-width: 120px;
+        max-width: 160px;
+        flex: 1 1 120px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="label" id="title-label"></div>
+  <div class="timeline" id="timeline"></div>
+
+  <script>
+    /* ========================================
+       Config (updated by sync-progress.py)
+    ======================================== */
+    var PAGE_TITLE = "Project Timeline";
+    document.getElementById('title-label').textContent = PAGE_TITLE;
+
+    var CONFIG = {
+      phases: [
+        <!-- PHASES_START -->
+        { title: "Phase 1", startDate: "5/22", endDate: "5/23" },
+        { title: "Phase 2", startDate: "5/28", endDate: "6/15" },
+        { title: "Phase 3", startDate: "6/16", endDate: "6/22" },
+        { title: "Phase 4", startDate: "6/23", endDate: "6/29" },
+        { title: "Phase 5", startDate: "6/30", endDate: "7/02" },
+        { title: "Phase 6", startDate: "7/03", endDate: "7/05" }
+        <!-- PHASES_END -->
+      ]
+    };
+
+    /* ========================================
+       State
+    ======================================== */
+    var CHECKED_KEY = 'simple-progress-tracker-checked';
+
+    function getCheckedIndex() {
+      var raw = localStorage.getItem(CHECKED_KEY);
+      return raw !== null ? parseInt(raw, 10) : null;
+    }
+
+    function setCheckedIndex(idx) {
+      if (idx === null) {
+        localStorage.removeItem(CHECKED_KEY);
+      } else {
+        localStorage.setItem(CHECKED_KEY, String(idx));
+      }
+    }
+
+    /* ========================================
+       Utils
+    ======================================== */
+    function parseMday(md) {
+      var p = md.split('/');
+      return new Date(new Date().getFullYear(), parseInt(p[0], 10) - 1, parseInt(p[1], 10));
+    }
+
+    /* ========================================
+       Render
+    ======================================== */
+    function render() {
+      var today      = new Date();
+      var checkedIdx = getCheckedIndex();
+      var container  = document.getElementById('timeline');
+      var html       = '';
+
+      CONFIG.phases.forEach(function(phase, i) {
+        var startDt  = parseMday(phase.startDate);
+        var endDt    = parseMday(phase.endDate);
+        var diff     = Math.ceil((endDt - today) / 86400000);
+        var cls      = 'phase';
+        var header   = '';
+        var daysNum  = '';
+        var daysUnit = '';
+        var isChecked = (i === checkedIdx);
+
+        if (checkedIdx !== null) {
+          if (i < checkedIdx) {
+            cls += ' done';
+          } else if (i === checkedIdx) {
+            if (diff < 0 || diff === 0) {
+              cls += ' urgent';
+              header  = 'OVERDUE';
+              daysNum = Math.abs(diff) || '0';
+            } else if (diff <= 2) {
+              cls += ' warning';
+              header  = 'DAYS LEFT';
+              daysNum = diff;
+            } else {
+              cls += ' current';
+              header  = 'DAYS LEFT';
+              daysNum = diff;
+            }
+            daysUnit = 'days';
+          } else {
+            cls += ' pending';
+            header   = 'PLANNED';
+            daysNum  = Math.ceil((endDt - startDt) / 86400000) + 1;
+            daysUnit = 'days';
+          }
+        } else {
+          cls += ' pending';
+          header   = 'PLANNED';
+          daysNum  = Math.ceil((endDt - startDt) / 86400000) + 1;
+          daysUnit = 'days';
+        }
+
+        var dateStr = phase.startDate + ' – ' + phase.endDate;
+
+        html += '<label class="' + cls + '" data-idx="' + i + '">';
+        html += '<div class="checkbox"><input type="checkbox"' + (isChecked ? ' checked' : '') + '></div>';
+        html += '<div class="title">'     + phase.title + '</div>';
+        html += '<div class="date">'      + dateStr     + '</div>';
+        html += '<div class="header">'    + header      + '</div>';
+        html += '<div class="days">'      + daysNum     + '</div>';
+        html += '<div class="days-unit">' + daysUnit    + '</div>';
+        html += '</label>';
+      });
+
+      container.innerHTML = html;
+
+      container.addEventListener('change', function(e) {
+        if (e.target.type !== 'checkbox') return;
+        var idx = parseInt(e.target.closest('[data-idx]').dataset.idx, 10);
+        setCheckedIndex(e.target.checked ? idx : null);
+        render();
+      });
+    }
+
+    render();
+  </script>
+
+</body>
+</html>
