@@ -1,4 +1,4 @@
-# Simple Progress Tracker
+# Simple Progress Tracker v1.0.0
 
 A lightweight, self-contained project timeline tracker — single HTML file, no build step required.
 

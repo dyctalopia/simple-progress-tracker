@@ -1,4 +1,4 @@
-# Project Timeline
+# Project Timeline v1.0.0
 
 > Purpose: Single source of truth for `index.html`, synced via `sync-progress.py`
 
