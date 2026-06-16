@@ -2,7 +2,7 @@
 
 A lightweight, self-contained project timeline tracker — single HTML file, no build step required.
 
-**Live demo:** https://dannydin.github.io/simple-progress-tracker/
+Live demo: https://dyctalopia.github.io/simple-progress-tracker/
 
 ---
 
