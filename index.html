@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simple Progress Tracker v1.0.0</title>
+  <title>Simple Progress Tracker v1.0.1</title>
   <style>
     /* ========================================
        Reset & Base
@@ -117,10 +117,6 @@
       transition: transform 0.15s, background-color 0.15s;
     }
 
-    .phase .checkbox input[type="checkbox"]:checked::after {
-      transform: translate(-50%, -50%) scale(1);
-    }
-
     /* Status: checkbox border matches card status */
     .phase.done    .checkbox input[type="checkbox"]                               { border-color: var(--border); }
     .phase.done    .checkbox input[type="checkbox"]:checked::after                  { background-color: var(--border); }
@@ -191,7 +187,6 @@
   </style>
 </head>
 <body>
-
   <div class="label" id="title-label"></div>
   <div class="timeline" id="timeline"></div>
 
@@ -258,43 +253,41 @@
         var header   = '';
         var daysNum  = '';
         var daysUnit = '';
-        var isChecked = (i === checkedIdx);
+        var isDone   = (i === checkedIdx);
 
-        if (checkedIdx !== null) {
-          if (i < checkedIdx) {
-            cls += ' done';
-          } else if (i === checkedIdx) {
-            if (diff < 0 || diff === 0) {
-              cls += ' urgent';
-              header  = 'OVERDUE';
-              daysNum = Math.abs(diff) || '0';
-            } else if (diff <= 2) {
-              cls += ' warning';
-              header  = 'DAYS LEFT';
-              daysNum = diff;
-            } else {
-              cls += ' current';
-              header  = 'DAYS LEFT';
-              daysNum = diff;
-            }
-            daysUnit = 'days';
-          } else {
+        if (isDone) {
+          // Checkbox 勾了 → 強制定為已完成（灰）
+          cls += ' done';
+          header   = 'COMPLETED';
+          daysNum  = '✓';
+          daysUnit = '';
+        } else {
+          // 無勾選 → 自動偵測日期狀態
+          if (today < startDt) {
+            // 今天還沒到這個 phase → 尚未開始（灰）
             cls += ' pending';
             header   = 'PLANNED';
             daysNum  = Math.ceil((endDt - startDt) / 86400000) + 1;
             daysUnit = 'days';
+          } else if (today >= startDt && today <= endDt) {
+            // 今天在區間內 → 目前進行中（綠）
+            cls += ' current';
+            header   = 'NOW';
+            daysNum  = Math.ceil((endDt - today) / 86400000) + 1;
+            daysUnit = 'days left';
+          } else {
+            // 今天已超過結束日期 → 逾期（紅）
+            cls += ' urgent';
+            header   = 'OVERDUE';
+            daysNum  = Math.abs(diff);
+            daysUnit = 'days late';
           }
-        } else {
-          cls += ' pending';
-          header   = 'PLANNED';
-          daysNum  = Math.ceil((endDt - startDt) / 86400000) + 1;
-          daysUnit = 'days';
         }
 
         var dateStr = phase.startDate + ' – ' + phase.endDate;
 
         html += '<label class="' + cls + '" data-idx="' + i + '">';
-        html += '<div class="checkbox"><input type="checkbox"' + (isChecked ? ' checked' : '') + '></div>';
+        html += '<div class="checkbox"><input type="checkbox"' + (isDone ? ' checked' : '') + '></div>';
         html += '<div class="title">'     + phase.title + '</div>';
         html += '<div class="date">'      + dateStr     + '</div>';
         html += '<div class="header">'    + header      + '</div>';
@@ -315,6 +308,5 @@
 
     render();
   </script>
-
 </body>
-</html>
+</html>|]
