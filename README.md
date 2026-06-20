@@ -1,6 +1,10 @@
-## Simple Progress Tracker v1.0.1
+## Simple Progress Tracker v1.0.2
 
 A lightweight, self-contained project timeline tracker — single HTML file, no build step required.
+
+### Changelog
+- **v1.0.2**: 當某任務被選為當前階段時，之前的任務顯示『完成 ✓』樣式
+
 
 Live demo: https://dyctalopia.github.io/simple-progress-tracker/
 

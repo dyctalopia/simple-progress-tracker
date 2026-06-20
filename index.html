@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simple Progress Tracker v1.0.1</title>
+  <title>Simple Progress Tracker v1.0.2</title>
   <style>
     /* ========================================
        Reset & Base
@@ -253,36 +253,36 @@
         var header   = '';
         var daysNum  = '';
         var daysUnit = '';
-        var isDone   = (i === checkedIdx);
+        var isDone   = (i < checkedIdx);
 
-        if (isDone) {
-          // Checkbox 勾了 → 強制定為已完成（灰）
-          cls += ' done';
-          header   = 'COMPLETED';
-          daysNum  = '✓';
-          daysUnit = '';
-        } else {
-          // 無勾選 → 自動偵測日期狀態
-          if (today < startDt) {
-            // 今天還沒到這個 phase → 尚未開始（灰）
-            cls += ' pending';
-            header   = 'PLANNED';
-            daysNum  = Math.ceil((endDt - startDt) / 86400000) + 1;
-            daysUnit = 'days';
-          } else if (today >= startDt && today <= endDt) {
-            // 今天在區間內 → 目前進行中（綠）
-            cls += ' current';
-            header   = 'NOW';
-            daysNum  = Math.ceil((endDt - today) / 86400000) + 1;
-            daysUnit = 'days left';
-          } else {
-            // 今天已超過結束日期 → 逾期（紅）
-            cls += ' urgent';
-            header   = 'OVERDUE';
-            daysNum  = Math.abs(diff);
-            daysUnit = 'days late';
-          }
-        }
+                if (isDone) {
+                  // 已完成的 phases → 顯示「完成 ✓」
+                  cls += ' done';
+                  header   = '完成';
+                  daysNum  = '✓';
+                  daysUnit = '';
+                } else {
+                  // 无勾选 → 自动侦测日期状态
+                  if (today < startDt) {
+                    // 今天还没到这个 phase → 尚未开始（灰）
+                    cls += ' pending';
+                    header   = 'PLANNED';
+                    daysNum  = Math.ceil((endDt - startDt) / 86400000) + 1;
+                    daysUnit = 'days';
+                  } else if (today >= startDt && today <= endDt) {
+                    // 今天在区间内 → 目前进行中（绿）
+                    cls += ' current';
+                    header   = 'NOW';
+                    daysNum  = Math.ceil((endDt - today) / 86400000) + 1;
+                    daysUnit = 'days left';
+                  } else {
+                    // 今天已超过结束日期 → 逾期（红）
+                    cls += ' urgent';
+                    header   = 'OVERDUE';
+                    daysNum  = Math.abs(diff);
+                    daysUnit = 'days late';
+                  }
+                }
 
         var dateStr = phase.startDate + ' – ' + phase.endDate;
 
