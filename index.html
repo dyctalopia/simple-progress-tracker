@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simple Progress Tracker v1.0.2</title>
+  <title>Simple Progress Tracker v1.0.3</title>
   <style>
     /* ========================================
        Reset & Base
@@ -20,6 +20,7 @@
     :root {
       --bg:        #0f1115;
       --surface:   #171a20;
+      --surface-2: #1f232c;
       --border:    #252830;
       --text-pri:  #e8e8e8;
       --text-sec:  #6b7280;
@@ -30,9 +31,6 @@
       --font:      "Inter", "Noto Sans TC", system-ui, sans-serif;
     }
 
-    /* ========================================
-       Page
-    ======================================== */
     body {
       font-family: var(--font);
       background: var(--bg);
@@ -45,16 +43,42 @@
       padding: 40px 16px;
     }
 
+    .header {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      gap: 12px;
+    }
+
     .label {
       font-size: 0.875rem;
       font-weight: 600;
       letter-spacing: 0.08em;
       color: var(--text-sec);
-      margin-bottom: 24px;
     }
 
     /* ========================================
-       Timeline
+       Mode toggle (edit / view)
+    ======================================== */
+    .mode-toggle {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-pri);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font: inherit;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .mode-toggle:hover { border-color: var(--text-pri); }
+    .mode-toggle.active { border-color: var(--green); color: var(--green); }
+
+    /* ========================================
+       Timeline (view mode)
     ======================================== */
     .timeline {
       display: flex;
@@ -66,9 +90,6 @@
       max-width: 900px;
     }
 
-    /* ========================================
-       Phase Card
-    ======================================== */
     .phase {
       position: relative;
       background: var(--surface);
@@ -104,7 +125,6 @@
       transition: border-color 0.15s;
     }
 
-    /* ::after fills the box when checked */
     .phase .checkbox input[type="checkbox"]::after {
       content: '';
       position: absolute;
@@ -117,52 +137,196 @@
       transition: transform 0.15s, background-color 0.15s;
     }
 
-    /* Status: checkbox border matches card status */
-    .phase.done    .checkbox input[type="checkbox"]                               { border-color: var(--border); }
-    .phase.done    .checkbox input[type="checkbox"]:checked::after                  { background-color: var(--border); }
-    .phase.current .checkbox input[type="checkbox"]                                { border-color: var(--green); }
-    .phase.current .checkbox input[type="checkbox"]:checked::after                  { background-color: var(--green); }
-    .phase.warning .checkbox input[type="checkbox"]                                { border-color: var(--orange); }
-    .phase.warning .checkbox input[type="checkbox"]:checked::after                  { background-color: var(--orange); }
-    .phase.urgent  .checkbox input[type="checkbox"]                                { border-color: var(--red); }
-    .phase.urgent  .checkbox input[type="checkbox"]:checked::after                 { background-color: var(--red); }
+    .phase .checkbox input[type="checkbox"]:checked::after {
+      transform: translate(-50%, -50%) scale(1);
+    }
 
-    /* Card content */
+    .phase.done    .checkbox input[type="checkbox"]                       { border-color: var(--border); }
+    .phase.done    .checkbox input[type="checkbox"]:checked::after      { background-color: var(--border); }
+    .phase.current .checkbox input[type="checkbox"]                       { border-color: var(--green); }
+    .phase.current .checkbox input[type="checkbox"]:checked::after      { background-color: var(--green); }
+    .phase.warning .checkbox input[type="checkbox"]                       { border-color: var(--orange); }
+    .phase.warning .checkbox input[type="checkbox"]:checked::after      { background-color: var(--orange); }
+    .phase.urgent  .checkbox input[type="checkbox"]                       { border-color: var(--red); }
+    .phase.urgent  .checkbox input[type="checkbox"]:checked::after       { background-color: var(--red); }
+
     .phase .title     { font-size: 0.875rem; font-weight: 600; color: var(--text-pri); margin-bottom: 4px; }
     .phase .date      { font-size: 0.65rem;   color: var(--text-sec); margin-bottom: 10px; }
-    .phase .header    { font-size: 0.65rem;   font-weight: 600; letter-spacing: 0.08em; color: var(--text-sec); margin-bottom: 0; }
+    .phase .header    { font-size: 0.65rem;   font-weight: 600; letter-spacing: 0.08em; color: var(--text-sec); }
     .phase .days      { font-size: 2.2rem;    font-weight: 700; line-height: 1; color: var(--text-sec); margin-bottom: 2px; }
     .phase .days-unit { font-size: 0.6rem;    font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-sec); }
 
-    /* ========================================
-       Status Styles
-    ======================================== */
     .phase.done {
       border-color: var(--border);
     }
     .phase.done .title  { color: var(--done-text); }
     .phase.done .header { color: var(--done-text); }
-
     .phase.current {
       border-color: var(--green);
       box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.15);
     }
     .phase.current .header { color: var(--green); }
     .phase.current .days   { color: var(--green); }
-
     .phase.warning {
       border-color: var(--orange);
       box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.12);
     }
     .phase.warning .header { color: var(--orange); }
     .phase.warning .days   { color: var(--orange); }
-
     .phase.urgent {
       border-color: var(--red);
       box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.15);
     }
-    .phase.urgent .header { color: var(--red); }
-    .phase.urgent .days   { color: var(--red); }
+    .phase.urgent .header  { color: var(--red); }
+    .phase.urgent .days    { color: var(--red); }
+
+    /* ========================================
+       Editor panel
+    ======================================== */
+    .editor {
+      width: 100%;
+      max-width: 900px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .editor .editor-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .editor .editor-head h2 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .editor .status-pill {
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--text-sec);
+    }
+    .editor .status-pill.connected {
+      border-color: var(--green);
+      color: var(--green);
+    }
+    .editor .status-pill.fallback {
+      border-color: var(--orange);
+      color: var(--orange);
+    }
+    .editor .status-pill.saving {
+      border-color: var(--text-sec);
+      color: var(--text-pri);
+    }
+
+    .editor .editor-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: var(--surface-2);
+      color: var(--text-pri);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font: inherit;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .btn:hover { border-color: var(--text-pri); }
+    .btn-primary { border-color: var(--green); color: var(--green); }
+    .btn-primary:hover { background: rgba(34, 197, 94, 0.1); }
+    .btn-danger { border-color: var(--red); color: var(--red); }
+    .btn-danger:hover { background: rgba(239, 68, 68, 0.1); }
+    .btn-ghost { color: var(--text-sec); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .editor .editor-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .edit-row {
+      display: grid;
+      grid-template-columns: 1fr 110px 110px 36px;
+      gap: 8px;
+      align-items: center;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+    }
+    .edit-row input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text-pri);
+      padding: 6px 8px;
+      border-radius: 4px;
+      font: inherit;
+      font-size: 0.85rem;
+      font-family: inherit;
+      width: 100%;
+    }
+    .edit-row input:focus {
+      outline: none;
+      border-color: var(--green);
+    }
+    .edit-row input.date {
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+    .edit-row .del {
+      background: transparent;
+      color: var(--text-sec);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .edit-row .del:hover { color: var(--red); border-color: var(--red); }
+
+    .add-row {
+      width: 100%;
+      background: transparent;
+      color: var(--text-sec);
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      font: inherit;
+      font-size: 0.8rem;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .add-row:hover { color: var(--green); border-color: var(--green); }
+
+    .editor-foot {
+      margin-top: 14px;
+      font-size: 0.7rem;
+      color: var(--text-sec);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .saved-flash {
+      color: var(--green);
+      font-weight: 600;
+    }
 
     /* ========================================
        Responsive
@@ -174,10 +338,11 @@
         padding: 12px 14px;
         padding-top: 20px;
       }
+      .edit-row { grid-template-columns: 1fr 90px 90px 32px; }
     }
 
     @media (max-width: 400px) {
-      .timeline { justify-content: center; }
+      .timeline, .editor { justify-content: center; }
       .phase {
         min-width: 120px;
         max-width: 160px;
@@ -187,109 +352,181 @@
   </style>
 </head>
 <body>
-  <div class="label" id="title-label"></div>
+
+  <div class="header">
+    <div class="label" id="title-label"></div>
+    <button class="mode-toggle" id="mode-toggle" type="button">✎ 編輯</button>
+  </div>
+
   <div class="timeline" id="timeline"></div>
+  <div class="editor" id="editor" hidden></div>
 
   <script>
     /* ========================================
-       Config (updated by sync-progress.py)
+       BUILT-IN DEFAULT DATA
+       (used when progress.json is missing — e.g. GitHub demo)
     ======================================== */
-    var PAGE_TITLE = "Project Timeline";
-    document.getElementById('title-label').textContent = PAGE_TITLE;
-
+    var PAGE_TITLE = "進度追蹤";
     var CONFIG = {
       phases: [
-        <!-- PHASES_START -->
-        { title: "Phase 1", startDate: "5/22", endDate: "5/23" },
-        { title: "Phase 2", startDate: "5/28", endDate: "6/15" },
-        { title: "Phase 3", startDate: "6/16", endDate: "6/22" },
-        { title: "Phase 4", startDate: "6/23", endDate: "6/29" },
-        { title: "Phase 5", startDate: "6/30", endDate: "7/02" },
-        { title: "Phase 6", startDate: "7/03", endDate: "7/05" }
-        <!-- PHASES_END -->
+        { title: "Phase 1", startDate: "1/01", endDate: "1/05" },
+        { title: "Phase 2", startDate: "1/06", endDate: "1/15" },
+        { title: "Phase 3", startDate: "1/16", endDate: "1/25" },
+        { title: "Phase 4", startDate: "1/26", endDate: "2/05" },
+        { title: "Phase 5", startDate: "2/06", endDate: "2/15" }
       ]
     };
 
+    document.getElementById('title-label').textContent = PAGE_TITLE;
+
     /* ========================================
-       State
+       STATE
     ======================================== */
-    var CHECKED_KEY = 'simple-progress-tracker-checked';
+    var CHECKED_KEY = 'tnl-oral-phases-checked';
+    var VIEW_KEY    = 'tnl-oral-edit-mode';           // 'view' or 'edit'
+    var SAVED_KEY   = 'tnl-oral-edit-draft';          // user's in-progress edits
+
+    var state = {
+      phases: [],       // current phases (CONFIG or fetched from server)
+      source: 'config', // 'server' | 'config' | 'draft'
+      mode: 'view',     // 'view' | 'edit'
+      editDraft: null,  // edit rows mirror this when in edit mode
+      serverAvailable: false,
+    };
+
+    /* ========================================
+       UTILS
+    ======================================== */
+    function parseMday(md) {
+      var p = String(md).split('/');
+      return new Date(new Date().getFullYear(), parseInt(p[0], 10) - 1, parseInt(p[1], 10));
+    }
 
     function getCheckedIndex() {
       var raw = localStorage.getItem(CHECKED_KEY);
       return raw !== null ? parseInt(raw, 10) : null;
     }
-
     function setCheckedIndex(idx) {
-      if (idx === null) {
-        localStorage.removeItem(CHECKED_KEY);
-      } else {
-        localStorage.setItem(CHECKED_KEY, String(idx));
+      if (idx === null) localStorage.removeItem(CHECKED_KEY);
+      else localStorage.setItem(CHECKED_KEY, String(idx));
+    }
+
+    function getViewMode() {
+      return localStorage.getItem(VIEW_KEY) === 'edit' ? 'edit' : 'view';
+    }
+    function setViewMode(m) {
+      localStorage.setItem(VIEW_KEY, m);
+    }
+
+    function loadDraft() {
+      try {
+        var raw = localStorage.getItem(SAVED_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) { return null; }
+    }
+    function saveDraft(phases) {
+      localStorage.setItem(SAVED_KEY, JSON.stringify(phases));
+    }
+    function clearDraft() {
+      localStorage.removeItem(SAVED_KEY);
+    }
+
+    /* ========================================
+       DATA LOAD
+       Try server first, fall back to CONFIG, fall back to draft.
+    ======================================== */
+    async function loadPhases() {
+      // 1) Try Flask server (only works over http://, not file://)
+      try {
+        var res = await fetch('/data', { cache: 'no-store' });
+        if (res.ok) {
+          var body = await res.json();
+          if (body && body.data && Array.isArray(body.data.phases)) {
+            state.serverAvailable = true;
+            state.source = 'server';
+            return body.data.phases;
+          }
+        }
+      } catch (e) {
+        // not on our server — that's fine, GitHub mode
       }
+
+      // 2) Try local file (works on any http server)
+      try {
+        var res2 = await fetch('progress.json', { cache: 'no-store' });
+        if (res2.ok) {
+          var body2 = await res2.json();
+          if (body2 && Array.isArray(body2.phases)) {
+            state.serverAvailable = true;
+            state.source = 'server';
+            return body2.phases;
+          }
+        }
+      } catch (e) { /* ignore */ }
+
+      // 3) Fall back to in-page CONFIG (GitHub demo / file:// )
+      state.serverAvailable = false;
+      state.source = 'config';
+      return CONFIG.phases.slice();
     }
 
     /* ========================================
-       Utils
+       RENDER: VIEW MODE (timeline)
     ======================================== */
-    function parseMday(md) {
-      var p = md.split('/');
-      return new Date(new Date().getFullYear(), parseInt(p[0], 10) - 1, parseInt(p[1], 10));
-    }
-
-    /* ========================================
-       Render
-    ======================================== */
-    function render() {
+    function renderTimeline() {
+      var container = document.getElementById('timeline');
       var today      = new Date();
       var checkedIdx = getCheckedIndex();
-      var container  = document.getElementById('timeline');
       var html       = '';
 
-      CONFIG.phases.forEach(function(phase, i) {
-        var startDt  = parseMday(phase.startDate);
-        var endDt    = parseMday(phase.endDate);
-        var diff     = Math.ceil((endDt - today) / 86400000);
+      state.phases.forEach(function(phase, i) {
+        var s = parseMday(phase.startDate);
+        var e = parseMday(phase.endDate);
+        var diff     = Math.ceil((e - today) / 86400000);
         var cls      = 'phase';
         var header   = '';
         var daysNum  = '';
         var daysUnit = '';
-        var isDone   = (i < checkedIdx);
+        var isChecked = (i === checkedIdx);
 
-                if (isDone) {
-                  // 已完成的 phases → 顯示「完成 ✓」
-                  cls += ' done';
-                  header   = '完成';
-                  daysNum  = '✓';
-                  daysUnit = '';
-                } else {
-                  // 无勾选 → 自动侦测日期状态
-                  if (today < startDt) {
-                    // 今天还没到这个 phase → 尚未开始（灰）
-                    cls += ' pending';
-                    header   = 'PLANNED';
-                    daysNum  = Math.ceil((endDt - startDt) / 86400000) + 1;
-                    daysUnit = 'days';
-                  } else if (today >= startDt && today <= endDt) {
-                    // 今天在区间内 → 目前进行中（绿）
-                    cls += ' current';
-                    header   = 'NOW';
-                    daysNum  = Math.ceil((endDt - today) / 86400000) + 1;
-                    daysUnit = 'days left';
-                  } else {
-                    // 今天已超过结束日期 → 逾期（红）
-                    cls += ' urgent';
-                    header   = 'OVERDUE';
-                    daysNum  = Math.abs(diff);
-                    daysUnit = 'days late';
-                  }
-                }
-
-        var dateStr = phase.startDate + ' – ' + phase.endDate;
+        if (checkedIdx !== null) {
+          if (i < checkedIdx) {
+            cls += ' done';
+            header   = '完成';
+            daysNum  = '✓';
+            daysUnit = '';
+          } else if (i === checkedIdx) {
+            if (diff < 0 || diff === 0) {
+              cls += ' urgent';
+              header  = '已逾期';
+              daysNum = Math.abs(diff) || '0';
+            } else if (diff <= 2) {
+              cls += ' warning';
+              header  = '還剩';
+              daysNum = diff;
+            } else {
+              cls += ' current';
+              header  = '還剩';
+              daysNum = diff;
+            }
+            daysUnit = '天';
+          } else {
+            cls += ' pending';
+            header   = '預計';
+            daysNum  = Math.ceil((e - s) / 86400000) + 1;
+            daysUnit = '天';
+          }
+        } else {
+          cls += ' pending';
+          header   = '預計';
+          daysNum  = Math.ceil((e - s) / 86400000) + 1;
+          daysUnit = '天';
+        }
 
         html += '<label class="' + cls + '" data-idx="' + i + '">';
-        html += '<div class="checkbox"><input type="checkbox"' + (isDone ? ' checked' : '') + '></div>';
-        html += '<div class="title">'     + phase.title + '</div>';
-        html += '<div class="date">'      + dateStr     + '</div>';
+        html += '<div class="checkbox"><input type="checkbox"' + (isChecked ? ' checked' : '') + '></div>';
+        html += '<div class="title">'     + escapeHtml(phase.title) + '</div>';
+        html += '<div class="date">'      + escapeHtml(phase.startDate) + ' – ' + escapeHtml(phase.endDate) + '</div>';
         html += '<div class="header">'    + header      + '</div>';
         html += '<div class="days">'      + daysNum     + '</div>';
         html += '<div class="days-unit">' + daysUnit    + '</div>';
@@ -297,16 +534,221 @@
       });
 
       container.innerHTML = html;
-
-      container.addEventListener('change', function(e) {
+      container.onchange = function(e) {
         if (e.target.type !== 'checkbox') return;
         var idx = parseInt(e.target.closest('[data-idx]').dataset.idx, 10);
         setCheckedIndex(e.target.checked ? idx : null);
-        render();
-      });
+        renderTimeline();
+      };
     }
 
-    render();
+    /* ========================================
+       RENDER: EDIT MODE
+    ======================================== */
+    function renderEditor() {
+      var editor = document.getElementById('editor');
+      var status = state.serverAvailable
+        ? '<span class="status-pill connected">✓ Server 連線中</span>'
+        : '<span class="status-pill fallback">◌ 僅本地（GitHub 模式）— 儲存按鈕會停用</span>';
+
+      var rows = '';
+      state.editDraft.forEach(function(p, i) {
+        rows += '<div class="edit-row" data-idx="' + i + '">';
+        rows += '<input type="text"   class="title"  placeholder="任務名稱" value="' + escapeAttr(p.title)     + '">';
+        rows += '<input type="text"   class="date"   placeholder="M/D"      value="' + escapeAttr(p.startDate) + '">';
+        rows += '<input type="text"   class="date"   placeholder="M/D"      value="' + escapeAttr(p.endDate)   + '">';
+        rows += '<button class="del" type="button" title="�除">×</button>';
+        rows += '</div>';
+      });
+
+      editor.innerHTML =
+        '<div class="editor-head">' +
+          '<div><h2>編輯任務</h2>' + status + '</div>' +
+          '<div class="editor-actions">' +
+            '<button class="btn btn-primary" id="btn-save" type="button"' + (state.serverAvailable ? '' : ' disabled') + '>儲存</button>' +
+            '<button class="btn"              id="btn-cancel" type="button">取消</button>' +
+            '<button class="btn btn-danger"   id="btn-reset" type="button"' + (state.serverAvailable ? '' : ' disabled') + '>↺ 重設為預設</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="editor-rows">' + rows + '</div>' +
+        '<button class="add-row" id="btn-add" type="button">+ 新增任務</button>' +
+        '<div class="editor-foot">' +
+          '<span id="save-feedback"></span>' +
+          '<span>上次儲存：' + escapeHtml(getLastSavedLabel()) + '</span>' +
+        '</div>';
+
+      // wire up events
+      editor.querySelectorAll('.edit-row').forEach(function(row) {
+        var i = parseInt(row.dataset.idx, 10);
+        row.querySelector('.title').oninput = function(e) {
+          state.editDraft[i].title = e.target.value;
+          saveDraft(state.editDraft);
+        };
+        row.querySelectorAll('.date').forEach(function(d, k) {
+          d.oninput = function(e) {
+            if (k === 0) state.editDraft[i].startDate = e.target.value;
+            else         state.editDraft[i].endDate   = e.target.value;
+            saveDraft(state.editDraft);
+          };
+        });
+        row.querySelector('.del').onclick = function() {
+          state.editDraft.splice(i, 1);
+          saveDraft(state.editDraft);
+          renderEditor();
+        };
+      });
+
+      document.getElementById('btn-add').onclick = function() {
+        state.editDraft.push({ title: '', startDate: '', endDate: '' });
+        saveDraft(state.editDraft);
+        renderEditor();
+      };
+
+      document.getElementById('btn-cancel').onclick = function() {
+        // discard draft, exit edit
+        clearDraft();
+        state.editDraft = null;
+        setViewMode('view');
+        state.mode = 'view';
+        render();
+      };
+
+      var saveBtn = document.getElementById('btn-save');
+      saveBtn.onclick = function() {
+        if (!state.serverAvailable) return;
+        var cleaned = state.editDraft.map(function(p) {
+          return { title: p.title.trim(), startDate: p.startDate.trim(), endDate: p.endDate.trim() };
+        }).filter(function(p) { return p.title && p.startDate && p.endDate; });
+
+        saveBtn.disabled = true;
+        setSaveStatus('saving', '儲存中…');
+        fetch('/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phases: cleaned })
+        }).then(function(r) {
+          return r.json().then(function(b) { return { ok: r.ok, body: b }; });
+        }).then(function(r) {
+          if (!r.ok) throw new Error(r.body.error || 'save failed');
+          state.phases = cleaned;
+          clearDraft();
+          state.editDraft = null;
+          setViewMode('view');
+          state.mode = 'view';
+          render();
+          setSaveStatus('ok', '✓ 已儲存 ' + (r.body.savedAt || ''));
+          setTimeout(function() { setSaveStatus('', ''); }, 3000);
+        }).catch(function(err) {
+          setSaveStatus('err', '✗ 儲存失敗：' + err.message);
+          saveBtn.disabled = false;
+        });
+      };
+
+      var resetBtn = document.getElementById('btn-reset');
+      resetBtn.onclick = function() {
+        if (!state.serverAvailable) return;
+        if (!confirm('刪除 progress.json，重設為 HTML 預設值？')) return;
+        fetch('/reset', { method: 'POST' })
+          .then(function(r) { return r.json(); })
+          .then(function() {
+            state.phases = CONFIG.phases.slice();
+            clearDraft();
+            state.editDraft = null;
+            setViewMode('view');
+            state.mode = 'view';
+            render();
+          });
+      };
+    }
+
+    function setSaveStatus(kind, msg) {
+      var el = document.getElementById('save-feedback');
+      if (!el) return;
+      el.className = kind === 'ok' ? 'saved-flash' : '';
+      el.textContent = msg;
+    }
+
+    function getLastSavedLabel() {
+      return state.serverAvailable ? '見 progress.json' : '—';
+    }
+
+    /* ========================================
+       HELPERS
+    ======================================== */
+    function escapeHtml(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+    function escapeAttr(s) {
+      return escapeHtml(s);
+    }
+
+    /* ========================================
+       MAIN RENDER ROUTER
+    ======================================== */
+    function render() {
+      var editor = document.getElementById('editor');
+      var timeline = document.getElementById('timeline');
+      var toggle = document.getElementById('mode-toggle');
+
+      if (state.mode === 'edit') {
+        timeline.hidden = true;
+        editor.hidden = false;
+        toggle.textContent = '✓ 完成編輯';
+        toggle.classList.add('active');
+        // seed draft if missing — then load any edits in progress
+        if (!state.editDraft) {
+          var draft = loadDraft();
+          state.editDraft = draft && Array.isArray(draft) && draft.length ? draft : state.phases.map(function(p) {
+            return { title: p.title, startDate: p.startDate, endDate: p.endDate };
+          });
+        }
+        renderEditor();
+      } else {
+        timeline.hidden = false;
+        editor.hidden = true;
+        toggle.textContent = '✎ 編輯';
+        toggle.classList.remove('active');
+        renderTimeline();
+      }
+    }
+
+    /* ========================================
+       BOOT
+    ======================================== */
+    (async function() {
+      state.phases = await loadPhases();
+      state.mode   = getViewMode();
+      // if user opens in edit mode but never had a draft, seed fresh from phases
+      if (state.mode === 'edit') {
+        var draft = loadDraft();
+        state.editDraft = draft && Array.isArray(draft) && draft.length ? draft : state.phases.map(function(p) {
+          return { title: p.title, startDate: p.startDate, endDate: p.endDate };
+        });
+      }
+
+      document.getElementById('mode-toggle').onclick = function() {
+        if (state.mode === 'view') {
+          setViewMode('edit');
+          state.mode = 'edit';
+          state.editDraft = null; // will be reseeded from current phases (or saved draft) in render()
+        } else {
+          // discard draft on manual exit — keeps users from "losing" prior state
+          clearDraft();
+          state.editDraft = null;
+          setViewMode('view');
+          state.mode = 'view';
+        }
+        render();
+      };
+
+      render();
+    })();
   </script>
+
 </body>
-</html>|]
+</html>
