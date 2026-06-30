@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simple Progress Tracker v1.0.3</title>
+  <title>進度追蹤</title>
   <style>
     /* ========================================
        Reset & Base
@@ -26,7 +26,7 @@
       --text-sec:  #6b7280;
       --done-text: #6b7280;
       --green:     #22c55e;
-      --orange:    #f59e0b;
+      --orange:    f59e0b;
       --red:       #ef4444;
       --font:      "Inter", "Noto Sans TC", system-ui, sans-serif;
     }
@@ -36,28 +36,59 @@
       background: var(--bg);
       color: var(--text-pri);
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
       padding: 40px 16px;
     }
 
-    .header {
+    .page-header {
       width: 100%;
-      max-width: 900px;
+      max-width: 1100px;
+      margin: 0 auto 32px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 24px;
       gap: 12px;
     }
 
-    .label {
-      font-size: 0.875rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
+    .page-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--text-pri);
+    }
+
+    .page-hint {
+      font-size: 0.7rem;
       color: var(--text-sec);
+    }
+
+    /* ========================================
+       Project Section
+    ======================================== */
+    .project-section {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto 40px;
+    }
+
+    .project-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .project-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-pri);
+    }
+
+    .project-meta {
+      font-size: 0.65rem;
+      color: var(--text-sec);
+      margin-left: auto;
     }
 
     /* ========================================
@@ -83,11 +114,9 @@
     .timeline {
       display: flex;
       flex-wrap: wrap;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
-      gap: 16px;
-      width: 100%;
-      max-width: 900px;
+      gap: 12px;
     }
 
     .phase {
@@ -95,12 +124,12 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 16px 20px;
+      padding: 16px 18px;
       padding-top: 22px;
-      min-width: 148px;
-      max-width: 200px;
+      min-width: 140px;
+      max-width: 180px;
       text-align: center;
-      flex: 1 1 148px;
+      flex: 1 1 140px;
       cursor: pointer;
       transition: border-color 0.15s, box-shadow 0.15s;
       user-select: none;
@@ -185,7 +214,8 @@
     ======================================== */
     .editor {
       width: 100%;
-      max-width: 900px;
+      max-width: 1100px;
+      margin: 0 auto 40px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -204,31 +234,6 @@
       font-weight: 600;
       letter-spacing: 0.04em;
     }
-    .editor .status-pill {
-      font-size: 0.7rem;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      color: var(--text-sec);
-    }
-    .editor .status-pill.connected {
-      border-color: var(--green);
-      color: var(--green);
-    }
-    .editor .status-pill.fallback {
-      border-color: var(--orange);
-      color: var(--orange);
-    }
-    .editor .status-pill.saving {
-      border-color: var(--text-sec);
-      color: var(--text-pri);
-    }
-
-    .editor .editor-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
 
     .btn {
       background: var(--surface-2);
@@ -246,7 +251,6 @@
     .btn-primary:hover { background: rgba(34, 197, 94, 0.1); }
     .btn-danger { border-color: var(--red); color: var(--red); }
     .btn-danger:hover { background: rgba(239, 68, 68, 0.1); }
-    .btn-ghost { color: var(--text-sec); }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
     .editor .editor-rows {
@@ -255,15 +259,76 @@
       gap: 10px;
     }
 
-    .edit-row {
+    /* Project editor */
+    .proj-row {
       display: grid;
-      grid-template-columns: 1fr 110px 110px 36px;
+      grid-template-columns: 2fr 1fr 36px;
       gap: 8px;
       align-items: center;
       background: var(--surface-2);
       border: 1px solid var(--border);
       border-radius: 6px;
       padding: 8px 10px;
+      margin-bottom: 8px;
+    }
+    .proj-row input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text-pri);
+      padding: 6px 8px;
+      border-radius: 4px;
+      font: inherit;
+      font-size: 0.85rem;
+      font-family: inherit;
+      width: 100%;
+    }
+    .proj-row input:focus {
+      outline: none;
+      border-color: var(--green);
+    }
+    .proj-row .del {
+      background: transparent;
+      color: var(--text-sec);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .proj-row .del:hover { color: var(--red); border-color: var(--red); }
+
+    /* Phase editor per project */
+    .phase-edit-block {
+      margin-bottom: 16px;
+      padding: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .phase-edit-block .proj-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-sec);
+      margin-bottom: 8px;
+      letter-spacing: 0.06em;
+    }
+    .phase-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .edit-row {
+      display: grid;
+      grid-template-columns: 1fr 100px 100px 36px;
+      gap: 8px;
+      align-items: center;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px;
     }
     .edit-row input {
       background: var(--bg);
@@ -318,80 +383,116 @@
       font-size: 0.7rem;
       color: var(--text-sec);
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       gap: 8px;
       flex-wrap: wrap;
     }
 
-    .saved-flash {
-      color: var(--green);
-      font-weight: 600;
+    /* ========================================
+       Conflict banner
+    ======================================== */
+    .conflict-banner {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto 24px;
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.8rem;
+      color: #ef4444;
+      display: none;
     }
+    .conflict-banner.visible { display: block; }
+    .conflict-banner strong { font-weight: 600; }
 
     /* ========================================
        Responsive
     ======================================== */
-    @media (max-width: 540px) {
+    @media (max-width: 640px) {
       .phase {
-        min-width: 130px;
-        flex: 1 1 130px;
+        min-width: 120px;
+        flex: 1 1 120px;
         padding: 12px 14px;
         padding-top: 20px;
       }
-      .edit-row { grid-template-columns: 1fr 90px 90px 32px; }
-    }
-
-    @media (max-width: 400px) {
-      .timeline, .editor { justify-content: center; }
-      .phase {
-        min-width: 120px;
-        max-width: 160px;
-        flex: 1 1 120px;
+      .edit-row { grid-template-columns: 1fr 80px 80px 32px; }
+      .proj-row { grid-template-columns: 1fr 36px; }
+      .proj-row input[type="text"] { display: none; }
+      .proj-row .proj-name-display {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--text-pri);
+        padding: 6px 0;
       }
     }
   </style>
 </head>
 <body>
 
-  <div class="header">
-    <div class="label" id="title-label"></div>
+  <div class="page-header">
+    <div>
+      <div class="page-title">📋 進度追蹤</div>
+      <div class="page-hint" id="updated-at"></div>
+    </div>
     <button class="mode-toggle" id="mode-toggle" type="button">✎ 編輯</button>
   </div>
 
-  <div class="timeline" id="timeline"></div>
+  <div class="conflict-banner" id="conflict-banner">
+    ⚠ <strong>時程衝突：</strong><span id="conflict-text"></span>
+  </div>
+
+  <div id="projects-container"></div>
+
   <div class="editor" id="editor" hidden></div>
 
   <script>
     /* ========================================
-       BUILT-IN DEFAULT DATA
-       (used when progress.json is missing — e.g. GitHub demo)
+       CONFIG — 編輯這個區塊來新增 / 修改專案
+       每個專案：
+         name       — 顯示名稱
+         phases     — 陣列，每項 { title, startDate, endDate }
+       直接修改儲存後，刷新瀏覽器即可。
     ======================================== */
-    var PAGE_TITLE = "進度追蹤";
     var CONFIG = {
-      phases: [
-        { title: "Phase 1", startDate: "1/01", endDate: "1/05" },
-        { title: "Phase 2", startDate: "1/06", endDate: "1/15" },
-        { title: "Phase 3", startDate: "1/16", endDate: "1/25" },
-        { title: "Phase 4", startDate: "1/26", endDate: "2/05" },
-        { title: "Phase 5", startDate: "2/06", endDate: "2/15" }
+      updatedAt: '2026-06-30',
+      projects: [
+        {
+          name: 'TNL-口腔司 2D 動畫',
+          phases: [
+            { title: '前置作業', startDate: '5/22', endDate: '5/23' },
+            { title: '腳本定稿', startDate: '5/28', endDate: '6/15' },
+            { title: '分鏡完稿', startDate: '6/16', endDate: '6/22' },
+            { title: 'A Copy',   startDate: '6/23', endDate: '6/29' },
+            { title: 'B Copy',   startDate: '6/30', endDate: '7/02' },
+            { title: 'Final',    startDate: '7/03', endDate: '7/05' }
+          ]
+        }
+        /* ══════════════════════════════════════════
+           在上方最後一個專案結尾 } 後加上逗號，
+           即可新增下一個專案，格式如下：
+           ,
+           {
+             name: '專案名稱',
+             phases: [
+               { title: '任務', startDate: 'M/D', endDate: 'M/D' }
+             ]
+           }
+           ══════════════════════════════════════════ */
       ]
     };
-
-    document.getElementById('title-label').textContent = PAGE_TITLE;
 
     /* ========================================
        STATE
     ======================================== */
-    var CHECKED_KEY = 'tnl-oral-phases-checked';
-    var VIEW_KEY    = 'tnl-oral-edit-mode';           // 'view' or 'edit'
-    var SAVED_KEY   = 'tnl-oral-edit-draft';          // user's in-progress edits
+    var CHECKED_KEY = 'pt-checked';     // per-project checked index
+    var VIEW_KEY    = 'pt-edit-mode';
+    var SAVED_KEY   = 'pt-edit-draft';
 
     var state = {
-      phases: [],       // current phases (CONFIG or fetched from server)
-      source: 'config', // 'server' | 'config' | 'draft'
-      mode: 'view',     // 'view' | 'edit'
-      editDraft: null,  // edit rows mirror this when in edit mode
-      serverAvailable: false,
+      projects: [],       // loaded projects
+      mode: 'view',
+      editDraft: null,
     };
 
     /* ========================================
@@ -402,13 +503,16 @@
       return new Date(new Date().getFullYear(), parseInt(p[0], 10) - 1, parseInt(p[1], 10));
     }
 
-    function getCheckedIndex() {
-      var raw = localStorage.getItem(CHECKED_KEY);
+    function getCheckedKey(projIdx) {
+      return CHECKED_KEY + '-' + projIdx;
+    }
+    function getCheckedIndex(projIdx) {
+      var raw = localStorage.getItem(getCheckedKey(projIdx));
       return raw !== null ? parseInt(raw, 10) : null;
     }
-    function setCheckedIndex(idx) {
-      if (idx === null) localStorage.removeItem(CHECKED_KEY);
-      else localStorage.setItem(CHECKED_KEY, String(idx));
+    function setCheckedIndex(projIdx, idx) {
+      if (idx === null) localStorage.removeItem(getCheckedKey(projIdx));
+      else localStorage.setItem(getCheckedKey(projIdx), String(idx));
     }
 
     function getViewMode() {
@@ -424,122 +528,138 @@
         return raw ? JSON.parse(raw) : null;
       } catch (e) { return null; }
     }
-    function saveDraft(phases) {
-      localStorage.setItem(SAVED_KEY, JSON.stringify(phases));
+    function saveDraft(data) {
+      localStorage.setItem(SAVED_KEY, JSON.stringify(data));
     }
     function clearDraft() {
       localStorage.removeItem(SAVED_KEY);
     }
 
-    /* ========================================
-       DATA LOAD
-       Try server first, fall back to CONFIG, fall back to draft.
-    ======================================== */
-    async function loadPhases() {
-      // 1) Try Flask server (only works over http://, not file://)
-      try {
-        var res = await fetch('/data', { cache: 'no-store' });
-        if (res.ok) {
-          var body = await res.json();
-          if (body && body.data && Array.isArray(body.data.phases)) {
-            state.serverAvailable = true;
-            state.source = 'server';
-            return body.data.phases;
-          }
-        }
-      } catch (e) {
-        // not on our server — that's fine, GitHub mode
-      }
-
-      // 2) Try local file (works on any http server)
-      try {
-        var res2 = await fetch('progress.json', { cache: 'no-store' });
-        if (res2.ok) {
-          var body2 = await res2.json();
-          if (body2 && Array.isArray(body2.phases)) {
-            state.serverAvailable = true;
-            state.source = 'server';
-            return body2.phases;
-          }
-        }
-      } catch (e) { /* ignore */ }
-
-      // 3) Fall back to in-page CONFIG (GitHub demo / file:// )
-      state.serverAvailable = false;
-      state.source = 'config';
-      return CONFIG.phases.slice();
+    function escapeHtml(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&')
+        .replace(/</g, '<')
+        .replace(/>/g, '>')
+        .replace(/"/g, '"')
+        .replace(/'/g, ''');
     }
 
     /* ========================================
-       RENDER: VIEW MODE (timeline)
+       DETECT CONFLICTS
+       (phases that overlap in time)
     ======================================== */
-    function renderTimeline() {
-      var container = document.getElementById('timeline');
-      var today      = new Date();
-      var checkedIdx = getCheckedIndex();
-      var html       = '';
+    function detectConflicts(projects) {
+      // Collect all active (not-done) phases across projects
+      var active = [];
+      projects.forEach(function(proj, pi) {
+        proj.phases.forEach(function(phase, fi) {
+          var s = parseMday(phase.startDate);
+          var e = parseMday(phase.endDate);
+          active.push({ proj: proj.name, phase: phase.title, s: s, e: e, pi: pi, fi: fi });
+        });
+      });
 
-      state.phases.forEach(function(phase, i) {
-        var s = parseMday(phase.startDate);
-        var e = parseMday(phase.endDate);
-        var diff     = Math.ceil((e - today) / 86400000);
-        var cls      = 'phase';
-        var header   = '';
-        var daysNum  = '';
-        var daysUnit = '';
-        var isChecked = (i === checkedIdx);
+      var conflicts = [];
+      for (var i = 0; i < active.length; i++) {
+        for (var j = i + 1; j < active.length; j++) {
+          var a = active[i], b = active[j];
+          // overlap: a starts before b ends AND b starts before a ends
+          if (a.s <= b.e && b.s <= a.e) {
+            var label = a.proj + '「' + a.phase + '」與 ' + b.proj + '「' + b.phase + '」時段重疊';
+            if (conflicts.indexOf(label) === -1) conflicts.push(label);
+          }
+        }
+      }
+      return conflicts;
+    }
 
-        if (checkedIdx !== null) {
-          if (i < checkedIdx) {
-            cls += ' done';
-            header   = '完成';
-            daysNum  = '✓';
-            daysUnit = '';
-          } else if (i === checkedIdx) {
-            if (diff < 0 || diff === 0) {
-              cls += ' urgent';
-              header  = '已逾期';
-              daysNum = Math.abs(diff) || '0';
-            } else if (diff <= 2) {
-              cls += ' warning';
-              header  = '還剩';
-              daysNum = diff;
+    /* ========================================
+       RENDER: VIEW MODE
+    ======================================== */
+    function renderAllTimelines() {
+      var container = document.getElementById('projects-container');
+      var today = new Date();
+      var html = '';
+
+      state.projects.forEach(function(proj, projIdx) {
+        html += '<div class="project-section">';
+        html += '<div class="project-header">';
+        html += '<div class="project-title">' + escapeHtml(proj.name) + '</div>';
+        html += '<div class="project-meta">' + proj.phases.length + ' 階段</div>';
+        html += '</div>';
+        html += '<div class="timeline" data-proj="' + projIdx + '">';
+
+        var checkedIdx = getCheckedIndex(projIdx);
+
+        proj.phases.forEach(function(phase, i) {
+          var s = parseMday(phase.startDate);
+          var e = parseMday(phase.endDate);
+          var diff = Math.ceil((e - today) / 86400000);
+          var cls = 'phase';
+          var header = '';
+          var daysNum = '';
+          var daysUnit = '';
+          var isChecked = (i === checkedIdx);
+
+          if (checkedIdx !== null) {
+            if (i < checkedIdx) {
+              cls += ' done';
+              header = '完成';
+              daysNum = '✓';
+              daysUnit = '';
+            } else if (i === checkedIdx) {
+              if (diff < 0 || diff === 0) {
+                cls += ' urgent';
+                header = '已逾期';
+                daysNum = Math.abs(diff) || '0';
+              } else if (diff <= 2) {
+                cls += ' warning';
+                header = '還剩';
+                daysNum = diff;
+              } else {
+                cls += ' current';
+                header = '還剩';
+                daysNum = diff;
+              }
+              daysUnit = '天';
             } else {
-              cls += ' current';
-              header  = '還剩';
-              daysNum = diff;
+              cls += ' pending';
+              header = '預計';
+              daysNum = Math.ceil((e - s) / 86400000) + 1;
+              daysUnit = '天';
             }
-            daysUnit = '天';
           } else {
             cls += ' pending';
-            header   = '預計';
-            daysNum  = Math.ceil((e - s) / 86400000) + 1;
+            header = '預計';
+            daysNum = Math.ceil((e - s) / 86400000) + 1;
             daysUnit = '天';
           }
-        } else {
-          cls += ' pending';
-          header   = '預計';
-          daysNum  = Math.ceil((e - s) / 86400000) + 1;
-          daysUnit = '天';
-        }
 
-        html += '<label class="' + cls + '" data-idx="' + i + '">';
-        html += '<div class="checkbox"><input type="checkbox"' + (isChecked ? ' checked' : '') + '></div>';
-        html += '<div class="title">'     + escapeHtml(phase.title) + '</div>';
-        html += '<div class="date">'      + escapeHtml(phase.startDate) + ' – ' + escapeHtml(phase.endDate) + '</div>';
-        html += '<div class="header">'    + header      + '</div>';
-        html += '<div class="days">'      + daysNum     + '</div>';
-        html += '<div class="days-unit">' + daysUnit    + '</div>';
-        html += '</label>';
+          html += '<label class="' + cls + '" data-proj="' + projIdx + '" data-idx="' + i + '">';
+          html += '<div class="checkbox"><input type="checkbox"' + (isChecked ? ' checked' : '') + '></div>';
+          html += '<div class="title">' + escapeHtml(phase.title) + '</div>';
+          html += '<div class="date">' + escapeHtml(phase.startDate) + ' – ' + escapeHtml(phase.endDate) + '</div>';
+          html += '<div class="header">' + header + '</div>';
+          html += '<div class="days">' + daysNum + '</div>';
+          html += '<div class="days-unit">' + daysUnit + '</div>';
+          html += '</label>';
+        });
+
+        html += '</div></div>';
       });
 
       container.innerHTML = html;
-      container.onchange = function(e) {
-        if (e.target.type !== 'checkbox') return;
-        var idx = parseInt(e.target.closest('[data-idx]').dataset.idx, 10);
-        setCheckedIndex(e.target.checked ? idx : null);
-        renderTimeline();
-      };
+
+      // Wire up checkboxes
+      container.querySelectorAll('.phase input[type="checkbox"]').forEach(function(cb) {
+        cb.onchange = function(e) {
+          var label = e.target.closest('.phase');
+          var projIdx = parseInt(label.dataset.proj, 10);
+          var idx = parseInt(label.dataset.idx, 10);
+          setCheckedIndex(projIdx, e.target.checked ? idx : null);
+          renderAllTimelines();
+        };
+      });
     }
 
     /* ========================================
@@ -547,65 +667,109 @@
     ======================================== */
     function renderEditor() {
       var editor = document.getElementById('editor');
-      var status = state.serverAvailable
-        ? '<span class="status-pill connected">✓ Server 連線中</span>'
-        : '<span class="status-pill fallback">◌ 僅本地（GitHub 模式）— 儲存按鈕會停用</span>';
+      var draft = state.editDraft;
 
-      var rows = '';
-      state.editDraft.forEach(function(p, i) {
-        rows += '<div class="edit-row" data-idx="' + i + '">';
-        rows += '<input type="text"   class="title"  placeholder="任務名稱" value="' + escapeAttr(p.title)     + '">';
-        rows += '<input type="text"   class="date"   placeholder="M/D"      value="' + escapeAttr(p.startDate) + '">';
-        rows += '<input type="text"   class="date"   placeholder="M/D"      value="' + escapeAttr(p.endDate)   + '">';
-        rows += '<button class="del" type="button" title="�除">×</button>';
-        rows += '</div>';
+      var projRows = '';
+      draft.forEach(function(proj, pi) {
+        var phaseRows = '';
+        proj.phases.forEach(function(phase, fi) {
+          phaseRows += '<div class="edit-row" data-proj="' + pi + '" data-phase="' + fi + '">';
+          phaseRows += '<input type="text" class="phase-title"   placeholder="任務名稱" value="' + escapeHtml(phase.title) + '">';
+          phaseRows += '<input type="text" class="phase-start"    placeholder="M/D"      value="' + escapeHtml(phase.startDate) + '">';
+          phaseRows += '<input type="text" class="phase-end"      placeholder="M/D"      value="' + escapeHtml(phase.endDate) + '">';
+          phaseRows += '<button class="del phase-del" type="button" title="刪除">×</button>';
+          phaseRows += '</div>';
+        });
+
+        projRows += '<div class="proj-row" data-proj="' + pi + '">';
+        projRows += '<div style="display:flex;gap:8px;align-items:center;">';
+        projRows += '<input type="text" class="proj-name" placeholder="專案名稱" value="' + escapeHtml(proj.name) + '">';
+        projRows += '<button class="del proj-del" type="button" title="刪除專案">×</button>';
+        projRows += '</div>';
+        projRows += '</div>';
+        projRows += '<div class="phase-edit-block" data-proj="' + pi + '">';
+        projRows += '<div class="phase-rows">' + phaseRows + '</div>';
+        projRows += '<button class="add-row phase-add" type="button">+ 新增任務</button>';
+        projRows += '</div>';
       });
 
       editor.innerHTML =
         '<div class="editor-head">' +
-          '<div><h2>編輯任務</h2>' + status + '</div>' +
+          '<h2>✎ 編輯模式</h2>' +
           '<div class="editor-actions">' +
-            '<button class="btn btn-primary" id="btn-save" type="button"' + (state.serverAvailable ? '' : ' disabled') + '>儲存</button>' +
-            '<button class="btn"              id="btn-cancel" type="button">取消</button>' +
-            '<button class="btn btn-danger"   id="btn-reset" type="button"' + (state.serverAvailable ? '' : ' disabled') + '>↺ 重設為預設</button>' +
+            '<button class="btn btn-primary" id="btn-save" type="button">💾 儲存並下載 HTML</button>' +
+            '<button class="btn"            id="btn-cancel" type="button">取消</button>' +
           '</div>' +
         '</div>' +
-        '<div class="editor-rows">' + rows + '</div>' +
-        '<button class="add-row" id="btn-add" type="button">+ 新增任務</button>' +
+        '<div class="editor-rows" id="editor-rows">' +
+          projRows +
+        '</div>' +
+        '<button class="add-row" id="btn-add-proj" type="button">+ 新增專案</button>' +
         '<div class="editor-foot">' +
-          '<span id="save-feedback"></span>' +
-          '<span>上次儲存：' + escapeHtml(getLastSavedLabel()) + '</span>' +
+          '<span>💡 儲存後自動下載更新後的 HTML 檔案，手動覆蓋 <code>progress-tracker.html</code> 即可。</span>' +
         '</div>';
 
-      // wire up events
-      editor.querySelectorAll('.edit-row').forEach(function(row) {
-        var i = parseInt(row.dataset.idx, 10);
-        row.querySelector('.title').oninput = function(e) {
-          state.editDraft[i].title = e.target.value;
+      // Project name change
+      editor.querySelectorAll('.proj-name').forEach(function(inp) {
+        inp.oninput = function(e) {
+          var pi = parseInt(e.target.closest('.proj-row').dataset.proj, 10);
+          state.editDraft[pi].name = e.target.value;
           saveDraft(state.editDraft);
         };
-        row.querySelectorAll('.date').forEach(function(d, k) {
-          d.oninput = function(e) {
-            if (k === 0) state.editDraft[i].startDate = e.target.value;
-            else         state.editDraft[i].endDate   = e.target.value;
-            saveDraft(state.editDraft);
-          };
-        });
-        row.querySelector('.del').onclick = function() {
-          state.editDraft.splice(i, 1);
+      });
+
+      // Delete project
+      editor.querySelectorAll('.proj-del').forEach(function(btn) {
+        btn.onclick = function() {
+          var pi = parseInt(btn.closest('.proj-row').dataset.proj, 10);
+          state.editDraft.splice(pi, 1);
           saveDraft(state.editDraft);
           renderEditor();
         };
       });
 
-      document.getElementById('btn-add').onclick = function() {
-        state.editDraft.push({ title: '', startDate: '', endDate: '' });
+      // Phase field changes
+      editor.querySelectorAll('.edit-row').forEach(function(row) {
+        var pi = parseInt(row.dataset.proj, 10);
+        var fi = parseInt(row.dataset.phase, 10);
+        row.querySelector('.phase-title').oninput = function(e) {
+          state.editDraft[pi].phases[fi].title = e.target.value;
+          saveDraft(state.editDraft);
+        };
+        row.querySelector('.phase-start').oninput = function(e) {
+          state.editDraft[pi].phases[fi].startDate = e.target.value;
+          saveDraft(state.editDraft);
+        };
+        row.querySelector('.phase-end').oninput = function(e) {
+          state.editDraft[pi].phases[fi].endDate = e.target.value;
+          saveDraft(state.editDraft);
+        };
+        row.querySelector('.phase-del').onclick = function() {
+          state.editDraft[pi].phases.splice(fi, 1);
+          saveDraft(state.editDraft);
+          renderEditor();
+        };
+      });
+
+      // Add phase
+      editor.querySelectorAll('.phase-add').forEach(function(btn) {
+        btn.onclick = function() {
+          var pi = parseInt(btn.closest('.phase-edit-block').dataset.proj, 10);
+          state.editDraft[pi].phases.push({ title: '', startDate: '', endDate: '' });
+          saveDraft(state.editDraft);
+          renderEditor();
+        };
+      });
+
+      // Add project
+      document.getElementById('btn-add-proj').onclick = function() {
+        state.editDraft.push({ name: '新專案', phases: [{ title: '新任務', startDate: '7/01', endDate: '7/10' }] });
         saveDraft(state.editDraft);
         renderEditor();
       };
 
+      // Cancel
       document.getElementById('btn-cancel').onclick = function() {
-        // discard draft, exit edit
         clearDraft();
         state.editDraft = null;
         setViewMode('view');
@@ -613,131 +777,97 @@
         render();
       };
 
-      var saveBtn = document.getElementById('btn-save');
-      saveBtn.onclick = function() {
-        if (!state.serverAvailable) return;
-        var cleaned = state.editDraft.map(function(p) {
-          return { title: p.title.trim(), startDate: p.startDate.trim(), endDate: p.endDate.trim() };
-        }).filter(function(p) { return p.title && p.startDate && p.endDate; });
+      // Save → download updated HTML
+      document.getElementById('btn-save').onclick = function() {
+        // Update CONFIG in the page
+        var cfg = { updatedAt: new Date().toISOString().slice(0, 10), projects: state.editDraft };
+        var html = document.documentElement.outerHTML;
+        // Replace the CONFIG variable
+        html = html.replace(
+          /var CONFIG = \{[\s\S]*?\};(\s*\/\* ========================================\s*STATE)/,
+          'var CONFIG = ' + JSON.stringify(cfg, null, 2) + ';\n$1'
+        );
+        // Trigger download
+        var blob = new Blob([html], { type: 'text/html' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'progress-tracker.html';
+        a.click();
+        URL.revokeObjectURL(url);
 
-        saveBtn.disabled = true;
-        setSaveStatus('saving', '儲存中…');
-        fetch('/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phases: cleaned })
-        }).then(function(r) {
-          return r.json().then(function(b) { return { ok: r.ok, body: b }; });
-        }).then(function(r) {
-          if (!r.ok) throw new Error(r.body.error || 'save failed');
-          state.phases = cleaned;
-          clearDraft();
-          state.editDraft = null;
-          setViewMode('view');
-          state.mode = 'view';
-          render();
-          setSaveStatus('ok', '✓ 已儲存 ' + (r.body.savedAt || ''));
-          setTimeout(function() { setSaveStatus('', ''); }, 3000);
-        }).catch(function(err) {
-          setSaveStatus('err', '✗ 儲存失敗：' + err.message);
-          saveBtn.disabled = false;
-        });
-      };
-
-      var resetBtn = document.getElementById('btn-reset');
-      resetBtn.onclick = function() {
-        if (!state.serverAvailable) return;
-        if (!confirm('刪除 progress.json，重設為 HTML 預設值？')) return;
-        fetch('/reset', { method: 'POST' })
-          .then(function(r) { return r.json(); })
-          .then(function() {
-            state.phases = CONFIG.phases.slice();
-            clearDraft();
-            state.editDraft = null;
-            setViewMode('view');
-            state.mode = 'view';
-            render();
-          });
+        // Apply locally too
+        state.projects = JSON.parse(JSON.stringify(state.editDraft));
+        clearDraft();
+        state.editDraft = null;
+        setViewMode('view');
+        state.mode = 'view';
+        render();
       };
     }
 
-    function setSaveStatus(kind, msg) {
-      var el = document.getElementById('save-feedback');
-      if (!el) return;
-      el.className = kind === 'ok' ? 'saved-flash' : '';
-      el.textContent = msg;
-    }
-
-    function getLastSavedLabel() {
-      return state.serverAvailable ? '見 progress.json' : '—';
-    }
-
     /* ========================================
-       HELPERS
-    ======================================== */
-    function escapeHtml(s) {
-      return String(s == null ? '' : s)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-    function escapeAttr(s) {
-      return escapeHtml(s);
-    }
-
-    /* ========================================
-       MAIN RENDER ROUTER
+       MAIN RENDER
     ======================================== */
     function render() {
       var editor = document.getElementById('editor');
-      var timeline = document.getElementById('timeline');
+      var container = document.getElementById('projects-container');
       var toggle = document.getElementById('mode-toggle');
 
+      // Conflict detection (always visible)
+      var conflicts = detectConflicts(state.projects);
+      var banner = document.getElementById('conflict-banner');
+      var bannerText = document.getElementById('conflict-text');
+      if (conflicts.length > 0) {
+        banner.classList.add('visible');
+        bannerText.textContent = conflicts.join('；');
+      } else {
+        banner.classList.remove('visible');
+      }
+
       if (state.mode === 'edit') {
-        timeline.hidden = true;
+        container.hidden = true;
         editor.hidden = false;
         toggle.textContent = '✓ 完成編輯';
         toggle.classList.add('active');
-        // seed draft if missing — then load any edits in progress
         if (!state.editDraft) {
           var draft = loadDraft();
-          state.editDraft = draft && Array.isArray(draft) && draft.length ? draft : state.phases.map(function(p) {
-            return { title: p.title, startDate: p.startDate, endDate: p.endDate };
-          });
+          state.editDraft = draft && draft.projects && draft.projects.length
+            ? draft.projects
+            : JSON.parse(JSON.stringify(CONFIG.projects));
         }
         renderEditor();
       } else {
-        timeline.hidden = false;
+        container.hidden = false;
         editor.hidden = true;
         toggle.textContent = '✎ 編輯';
         toggle.classList.remove('active');
-        renderTimeline();
+        renderAllTimelines();
       }
+
+      // Updated at
+      document.getElementById('updated-at').textContent = '更新日期：' + (CONFIG.updatedAt || '—');
     }
 
     /* ========================================
        BOOT
     ======================================== */
-    (async function() {
-      state.phases = await loadPhases();
-      state.mode   = getViewMode();
-      // if user opens in edit mode but never had a draft, seed fresh from phases
+    (function() {
+      state.projects = JSON.parse(JSON.stringify(CONFIG.projects));
+      state.mode = getViewMode();
       if (state.mode === 'edit') {
         var draft = loadDraft();
-        state.editDraft = draft && Array.isArray(draft) && draft.length ? draft : state.phases.map(function(p) {
-          return { title: p.title, startDate: p.startDate, endDate: p.endDate };
-        });
+        state.editDraft = draft && draft.projects && draft.projects.length
+          ? draft.projects
+          : JSON.parse(JSON.stringify(CONFIG.projects));
       }
 
       document.getElementById('mode-toggle').onclick = function() {
         if (state.mode === 'view') {
           setViewMode('edit');
           state.mode = 'edit';
-          state.editDraft = null; // will be reseeded from current phases (or saved draft) in render()
+          state.editDraft = null;
         } else {
-          // discard draft on manual exit — keeps users from "losing" prior state
           clearDraft();
           state.editDraft = null;
           setViewMode('view');
