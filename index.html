@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Project Timeline</title>
+  <title>進度追蹤</title>
   <style>
     /* ========================================
        Reset & Base
@@ -98,6 +98,13 @@
       display: none;
     }
     .conflict-banner.visible { display: flex; align-items: center; gap: 8px; }
+
+    /* ========================================
+       Drag to Reorder
+    ======================================== */
+    .drag-hint { font-size: 0.7rem; color: #666; cursor: grab; user-select: none; }
+    .project-section.dragging { opacity: 0.4; }
+    .project-section.drag-over { border: 2px dashed #f59e0b; border-radius: 8px; }
 
     /* ========================================
        Projects Section
@@ -293,10 +300,29 @@
     }
     .edit-row {
       display: grid;
-      grid-template-columns: 1fr 100px 100px 36px;
+      grid-template-columns: 1fr 120px 120px 36px;
       gap: 8px;
       margin-bottom: 8px;
       align-items: center;
+    }
+    input[type="date"] {
+      -webkit-appearance: none;
+      appearance: none;
+      position: relative;
+      min-width: 0;
+      width: 100%;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      opacity: 0;
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      margin: 0;
+      padding: 0;
     }
     .edit-row input {
       background: var(--surface);
@@ -341,7 +367,7 @@
     @media (max-width: 640px) {
       .timeline { flex-direction: column; align-items: stretch; }
       .phase { min-width: unset; max-width: none; }
-      .edit-row { grid-template-columns: 1fr 70px 70px 30px; }
+      .edit-row { grid-template-columns: 1fr 120px 120px 30px; }
       .proj-row { grid-template-columns: 1fr auto; }
     }
   </style>
@@ -352,11 +378,11 @@
     <div class="title-group">
       <span style="font-size: 1.5rem;">📋</span>
       <div>
-        <div class="page-title">Project Timeline</div>
-        <div class="page-hint" id="updated-at">Updated: --</div>
+        <div class="page-title">進度追蹤</div>
+        <div class="page-hint" id="updated-at">更新日期：--</div>
       </div>
     </div>
-    <button class="mode-toggle" id="mode-toggle">✎ Edit</button>
+    <button class="mode-toggle" id="mode-toggle">✎ 編輯</button>
   </div>
 
   <div class="conflict-banner" id="conflict-banner">
@@ -368,15 +394,15 @@
 
   <div class="editor" id="editor" hidden>
     <div class="editor-header">
-      <h2 style="font-size: 1.1rem; font-weight: 600;">Edit Mode</h2>
+      <h2 style="font-size: 1.1rem; font-weight: 600;">編輯模式</h2>
       <div class="editor-actions">
-        <button class="btn btn-primary" id="btn-save">💾 Save</button>
-        <button class="btn" id="btn-cancel">Cancel</button>
+        <button class="btn btn-primary" id="btn-save">💾 儲存進度</button>
+        <button class="btn" id="btn-cancel">取消</button>
       </div>
     </div>
     <div id="editor-content"></div>
     <div class="editor-footer">
-      💡 Click Save to persist changes to <code>progress.json</code>.
+      💡 使用本地 Server 時，點擊儲存將自動更新 progress.json。
     </div>
   </div>
 
@@ -390,11 +416,11 @@
       updatedAt: '2026-07-01',
       projects: [
         {
-          name: 'Project Alpha',
+          name: 'TNL-口腔司 2D 動畫',
           phases: [
-            { title: 'Phase 1', startDate: '5/22', endDate: '5/23' },
-            { title: 'Phase 2', startDate: '5/28', endDate: '6/15' },
-            { title: 'Phase 3', startDate: '6/16', endDate: '6/22' },
+            { title: '前置作業', startDate: '5/22', endDate: '5/23' },
+            { title: '腳本定稿', startDate: '5/28', endDate: '6/15' },
+            { title: '分鏡完稿', startDate: '6/16', endDate: '6/22' },
             { title: 'A Copy',   startDate: '6/23', endDate: '6/29' },
             { title: 'B Copy',   startDate: '6/30', endDate: '7/02' },
             { title: 'Final',    startDate: '7/03', endDate: '7/05' }
@@ -417,6 +443,19 @@
       checkedIndices: {}
     };
 
+    let draggedIdx = null;
+
+    // M/D ↔ YYYY-MM-DD conversion for date inputs
+    const _toDateValue = (md) => {
+      if (!md || !/^\d+\/\d+$/.test(md)) return '';
+      const [m, d] = md.split('/').map(Number);
+      return `2026-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    };
+    const _fromDateValue = (dv) => {
+      if (!dv || !dv.includes('-')) return '';
+      const [, m, d] = dv.split('-');
+      return `${parseInt(m,10)}/${parseInt(d,10)}`;
+    };
     const parseMday = (md) => {
       const p = String(md).split('/');
       if (p.length !== 2) return new Date();
@@ -455,6 +494,7 @@
         if (res.ok) {
           const data = await res.json();
           state.projects = data.projects;
+          CONFIG.projects = data.projects;
           CONFIG.updatedAt = data.updatedAt;
         } else { throw new Error(); }
       } catch (e) {
@@ -468,7 +508,7 @@
       if (savedDraft) {
         try {
           const parsed = JSON.parse(savedDraft);
-          // Wrap legacy Array format into an object
+          // 如果是舊版 Array 格式，自動包裝成物件
           state.editDraft = Array.isArray(parsed) ? { projects: parsed } : parsed;
         } catch (e) {
           state.editDraft = { projects: JSON.parse(JSON.stringify(state.projects)) };
@@ -488,24 +528,24 @@
       const updatedAt = document.getElementById('updated-at');
       const conflicts = detectConflicts(state.projects);
 
-      // Conflict banner is disabled (detectConflicts() retained for future use)
+      // 衝突警告區塊已停用（保留 detectConflicts() 以便日後恢復）
       // const banner = document.getElementById('conflict-banner'); if (conflicts.length > 0) { banner.classList.add('visible'); document.getElementById('conflict-text').innerText = conflicts.join('；'); } else { banner.classList.remove('visible'); }
       document.getElementById('conflict-banner').classList.remove('visible');
 
       if (mode === 'edit') {
         editor.hidden = false;
         container.hidden = true;
-        toggle.innerText = '✓ Done Editing';
+        toggle.innerText = '✓ 完成編輯';
         toggle.classList.add('active');
         renderEditor();
       } else {
         editor.hidden = true;
         container.hidden = false;
-        toggle.innerText = '✎ Edit';
+        toggle.innerText = '✎ 編輯';
         toggle.classList.remove('active');
         renderTimeline();
       }
-      updatedAt.innerText = 'Updated: ' + CONFIG.updatedAt;
+      updatedAt.innerText = '更新日期：' + CONFIG.updatedAt;
     }
 
     function renderTimeline() {
@@ -514,13 +554,60 @@
       state.projects.forEach((proj, pIdx) => {
         const section = document.createElement('div');
         section.className = 'project-section';
+        section.draggable = true;
+        section.dataset.pIdx = pIdx;
         section.innerHTML = `
           <div class="project-header">
             <div class="project-title">${escapeHtml(proj.name)}</div>
-            <div class="project-meta">${proj.phases.length} phases</div>
+            <div class="project-meta">${proj.phases.length} 階段 <span class="drag-hint">⋮⋮ 拖曳移動</span></div>
           </div>
           <div class="timeline" data-proj="${pIdx}"></div>
         `;
+        // === drag to reorder ===
+        section.addEventListener('dragstart', (e) => {
+          draggedIdx = pIdx;
+          section.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        section.addEventListener('dragend', () => {
+          section.classList.remove('dragging');
+          draggedIdx = null;
+          document.querySelectorAll('.project-section').forEach(s => s.classList.remove('drag-over'));
+        });
+        section.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; section.classList.add('drag-over'); });
+        section.addEventListener('dragleave', () => section.classList.remove('drag-over'));
+        section.addEventListener('drop', (e) => {
+          e.preventDefault();
+          section.classList.remove('drag-over');
+          if (draggedIdx === null) return;
+          // 以 drop target 的即時 DOM 位置為準
+          const dropSections = [...document.querySelectorAll('.project-section')];
+          const targetPIdx = dropSections.indexOf(section);
+          if (targetPIdx < 0 || draggedIdx === targetPIdx) { draggedIdx = null; return; }
+          const arr = [...state.projects];
+          const [moved] = arr.splice(draggedIdx, 1);
+          arr.splice(targetPIdx, 0, moved);
+          // 重建 checkedIndices：根據新排列找到各專案原先的 checkedIndices
+          const ci = state.checkedIndices;
+          const oldIndexAtNew = {}; // newIndex -> oldIndex
+          arr.forEach((proj, newIdx) => {
+            const oldIdx = state.projects.findIndex(p => p.name === proj.name);
+            if (oldIdx >= 0) oldIndexAtNew[newIdx] = oldIdx;
+          });
+          const newCi = {};
+          arr.forEach((_, newIdx) => {
+            const oldIdx = oldIndexAtNew[newIdx];
+            if (oldIdx !== undefined && ci[oldIdx] !== undefined) {
+              newCi[newIdx] = ci[oldIdx];
+            }
+          });
+          state.projects = arr;
+          state.checkedIndices = newCi;
+          draggedIdx = null;
+          saveProgress();
+          renderTimeline();
+        });
+        // ========================
         const timeline = section.querySelector('.timeline');
         const lastChecked = state.checkedIndices[pIdx];
 
@@ -528,14 +615,14 @@
           const start = parseMday(ph.startDate);
           const end = parseMday(ph.endDate);
           const today = new Date(); today.setHours(0,0,0,0);
-          let cls = 'phase', header = 'Planned', days = Math.ceil((end - start) / 86400000) + 1, daysTxt = 'days', isChecked = phIdx < (lastChecked ?? -1);
+          let cls = 'phase', header = '預計', days = Math.ceil((end - start) / 86400000) + 1, daysTxt = '天', isChecked = phIdx < (lastChecked ?? -1);
           if (lastChecked !== null) {
-            if (phIdx < lastChecked) { cls += ' done'; header = 'Done'; days = '✓'; daysTxt = ''; }
+            if (phIdx < lastChecked) { cls += ' done'; header = '完成'; days = '✓'; daysTxt = ''; }
             else if (phIdx === lastChecked) {
               const diff = Math.ceil((end - today) / 86400000);
-              if (diff < 0) { cls += ' urgent'; header = 'Overdue'; days = Math.abs(diff) || 0; }
-              else if (diff <= 2) { cls += ' warning'; header = 'Left'; days = diff; }
-              else { cls += ' current'; header = 'Left'; days = diff; }
+              if (diff < 0) { cls += ' urgent'; header = '已逾期'; days = Math.abs(diff) || 0; }
+              else if (diff <= 2) { cls += ' warning'; header = '還剩'; days = diff; }
+              else { cls += ' current'; header = '還剩'; days = diff; }
             }
           }
           const card = document.createElement('div');
@@ -567,10 +654,10 @@
         group.innerHTML = `
           <div class="proj-row">
             <input type="text" class="proj-name-in" value="${escapeHtml(proj.name)}">
-            <button class="btn btn-danger proj-del-btn" data-pidx="${pIdx}">Delete Project</button>
+            <button class="btn btn-danger proj-del-btn" data-pidx="${pIdx}">刪除專案</button>
           </div>
           <div class="phase-rows"></div>
-          <button class="add-btn add-phase-btn" data-pidx="${pIdx}">+ Add Phase</button>
+          <button class="add-btn add-phase-btn" data-pidx="${pIdx}">+ 新增階段</button>
         `;
         const phaseRows = group.querySelector('.phase-rows');
         proj.phases.forEach((ph, phIdx) => {
@@ -578,8 +665,8 @@
           row.className = 'edit-row';
           row.innerHTML = `
             <input type="text" class="ph-title-in" value="${escapeHtml(ph.title)}">
-            <input type="text" class="ph-start-in" value="${escapeHtml(ph.startDate)}">
-            <input type="text" class="ph-end-in" value="${escapeHtml(ph.endDate)}">
+            <input type="date" class="ph-start-in" value="${_toDateValue(ph.startDate)}">
+            <input type="date" class="ph-end-in"   value="${_toDateValue(ph.endDate)}">
             <button class="btn-del-ph btn-danger" data-pidx="${pIdx}" data-phidx="${phIdx}">×</button>
           `;
           phaseRows.appendChild(row);
@@ -601,8 +688,8 @@
           const startInput = rowEl.querySelector('.ph-start-in');
           const endInput   = rowEl.querySelector('.ph-end-in');
           titleInput.oninput = (e) => { proj.phases[phIdx].title = e.target.value; saveDraft(); };
-          startInput.oninput = (e) => { proj.phases[phIdx].startDate = e.target.value; saveDraft(); };
-          endInput.oninput   = (e) => { proj.phases[phIdx].endDate = e.target.value; saveDraft(); };
+          startInput.oninput = (e) => { proj.phases[phIdx].startDate = _fromDateValue(e.target.value); saveDraft(); };
+          endInput.oninput   = (e) => { proj.phases[phIdx].endDate   = _fromDateValue(e.target.value); saveDraft(); };
         });
         group.querySelectorAll('.btn-del-ph').forEach(el => {
           el.onclick = () => { proj.phases.splice(el.dataset.phidx, 1); saveDraft(); renderEditor(); };
@@ -611,8 +698,8 @@
       });
       const addProjBtn = document.createElement('button');
       addProjBtn.className = 'add-btn';
-      addProjBtn.innerText = '+ Add Project';
-      addProjBtn.onclick = () => { state.editDraft.projects.push({ name: 'New Project', phases: [{ title: '', startDate: '', endDate: '' }] }); saveDraft(); renderEditor(); };
+      addProjBtn.innerText = '+ 新增專案';
+      addProjBtn.onclick = () => { state.editDraft.projects.push({ name: '新專案', phases: [{ title: '', startDate: '', endDate: '' }] }); saveDraft(); renderEditor(); };
       content.appendChild(addProjBtn);
     }
 
@@ -634,11 +721,30 @@
       render();
     };
 
+    const saveProgress = async () => {
+      const newCfg = {
+        updatedAt: new Date().toISOString().slice(0, 10),
+        projects: state.projects,
+        checkedIndices: state.checkedIndices
+      };
+      localStorage.setItem(CHECKED_KEY, JSON.stringify(state.checkedIndices));
+      CONFIG.projects = JSON.parse(JSON.stringify(state.projects));
+      CONFIG.updatedAt = newCfg.updatedAt;
+      try {
+        const res = await fetch('/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newCfg)
+        });
+        if (!res.ok) throw new Error();
+      } catch (_) { /* server not running, local only */ }
+    };
+
     document.getElementById('btn-save').onclick = async () => {
       const btn = document.getElementById('btn-save');
       const originalText = btn.innerText;
       btn.disabled = true;
-      btn.innerText = 'Saving...';
+      btn.innerText = '儲存中...';
 
       const newCfg = {
         updatedAt: new Date().toISOString().slice(0, 10),
@@ -653,15 +759,15 @@
           body: JSON.stringify(newCfg)
         });
         if (!res.ok) throw new Error('Server error');
-        
-        alert('Saved!');
+
+        alert('儲存成功！');
         state.projects = JSON.parse(JSON.stringify(newCfg.projects));
         state.checkedIndices = newCfg.checkedIndices;
         state.mode = 'view';
         localStorage.setItem(EDIT_MODE_KEY, 'view');
         render();
       } catch (e) {
-        alert('Save failed: is the Flask server running?');
+        alert('儲存失敗：無法連接到 Server，請確認 Python 伺服器是否已啟動。');
         console.error(e);
       } finally {
         btn.disabled = false;

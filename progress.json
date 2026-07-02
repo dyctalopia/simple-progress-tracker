@@ -2,22 +2,42 @@
   "updatedAt": "2026-07-02",
   "projects": [
     {
+      "name": "Project Beta",
+      "phases": [
+        {
+          "endDate": "7/6",
+          "startDate": "7/05",
+          "title": "前置作業"
+        },
+        {
+          "endDate": "7/2",
+          "startDate": "7/1",
+          "title": "腳本定稿"
+        },
+        {
+          "endDate": "7/7",
+          "startDate": "7/2",
+          "title": "分鏡手稿"
+        }
+      ]
+    },
+    {
       "name": "Project Alpha",
       "phases": [
         {
           "endDate": "5/23",
           "startDate": "5/22",
-          "title": "Phase 1"
+          "title": "前置作業"
         },
         {
           "endDate": "6/15",
           "startDate": "5/28",
-          "title": "Phase 2"
+          "title": "腳本定稿"
         },
         {
           "endDate": "6/22",
           "startDate": "6/16",
-          "title": "Phase 3"
+          "title": "分鏡完稿"
         },
         {
           "endDate": "6/29",
@@ -37,57 +57,37 @@
       ]
     },
     {
-      "name": "Project Beta",
-      "phases": [
-        {
-          "title": "Phase 1",
-          "startDate": "7/05",
-          "endDate": "7/6"
-        },
-        {
-          "title": "Phase 2",
-          "startDate": "7/1",
-          "endDate": "7/2"
-        },
-        {
-          "title": "Phase 3",
-          "startDate": "7/2",
-          "endDate": "7/7"
-        }
-      ]
-    },
-    {
-      "name": "Project Beta",
-      "phases": [
-        {
-          "title": "Phase 1",
-          "startDate": "6/15",
-          "endDate": "6/29"
-        },
-        {
-          "title": "Phase 2",
-          "startDate": "6/30",
-          "endDate": "7/1"
-        },
-        {
-          "title": "A Copy",
-          "startDate": "7/2",
-          "endDate": "7/7"
-        }
-      ]
-    },
-    {
       "name": "Project Gamma",
       "phases": [
         {
-          "title": "A Copy",
-          "startDate": "6/6",
-          "endDate": "7/1"
+          "endDate": "6/29",
+          "startDate": "6/15",
+          "title": "前置作業"
         },
         {
-          "title": "B Copy",
+          "endDate": "7/1",
+          "startDate": "6/30",
+          "title": "腳本定稿"
+        },
+        {
+          "endDate": "7/7",
           "startDate": "7/2",
-          "endDate": "7/7"
+          "title": "A Copy"
+        }
+      ]
+    },
+    {
+      "name": "Project Delta",
+      "phases": [
+        {
+          "endDate": "7/1",
+          "startDate": "6/6",
+          "title": "A Copy"
+        },
+        {
+          "endDate": "7/7",
+          "startDate": "7/2",
+          "title": "B Copy"
         }
       ]
     }
