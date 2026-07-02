@@ -1,0 +1,40 @@
+{
+  "updatedAt": "2026-07-02",
+  "projects": [
+    {
+      "name": "Project Alpha",
+      "phases": [
+        {
+          "endDate": "5/23",
+          "startDate": "5/22",
+          "title": "Phase 1"
+        },
+        {
+          "endDate": "6/15",
+          "startDate": "5/28",
+          "title": "Phase 2"
+        },
+        {
+          "endDate": "6/22",
+          "startDate": "6/16",
+          "title": "Phase 3"
+        },
+        {
+          "endDate": "6/29",
+          "startDate": "6/23",
+          "title": "A Copy"
+        },
+        {
+          "endDate": "7/02",
+          "startDate": "6/30",
+          "title": "B Copy"
+        },
+        {
+          "endDate": "7/05",
+          "startDate": "7/03",
+          "title": "Final"
+        }
+      ]
+    }
+  ]
+}

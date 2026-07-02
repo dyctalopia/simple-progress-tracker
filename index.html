@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>進度追蹤</title>
+  <title>Project Timeline</title>
   <style>
     /* ========================================
        Reset & Base
@@ -14,9 +14,6 @@
       box-sizing: border-box;
     }
 
-    /* ========================================
-       Design Tokens
-    ======================================== */
     :root {
       --bg:        #0f1115;
       --surface:   #171a20;
@@ -26,7 +23,7 @@
       --text-sec:  #6b7280;
       --done-text: #6b7280;
       --green:     #22c55e;
-      --orange:    f59e0b;
+      --orange:    #f59e0b;
       --red:       #ef4444;
       --font:      "Inter", "Noto Sans TC", system-ui, sans-serif;
     }
@@ -36,849 +33,647 @@
       background: var(--bg);
       color: var(--text-pri);
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* Ensure everything is centered horizontally */
       padding: 40px 16px;
     }
 
+    /* ========================================
+       Header
+    ======================================== */
     .page-header {
       width: 100%;
       max-width: 1100px;
-      margin: 0 auto 32px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      margin-bottom: 32px;
+    }
+
+    .title-group {
+      display: flex;
+      align-items: center;
       gap: 12px;
     }
 
     .page-title {
-      font-size: 1.1rem;
+      font-size: 1.25rem;
       font-weight: 700;
-      letter-spacing: 0.06em;
-      color: var(--text-pri);
+      letter-spacing: 0.05em;
     }
 
     .page-hint {
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       color: var(--text-sec);
     }
 
-    /* ========================================
-       Project Section
-    ======================================== */
-    .project-section {
-      width: 100%;
-      max-width: 1100px;
-      margin: 0 auto 40px;
-    }
-
-    .project-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .project-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--text-pri);
-    }
-
-    .project-meta {
-      font-size: 0.65rem;
-      color: var(--text-sec);
-      margin-left: auto;
-    }
-
-    /* ========================================
-       Mode toggle (edit / view)
-    ======================================== */
     .mode-toggle {
       background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text-pri);
-      padding: 6px 12px;
-      border-radius: 6px;
-      font: inherit;
-      font-size: 0.8rem;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: border-color 0.15s;
+      transition: all 0.2s;
     }
     .mode-toggle:hover { border-color: var(--text-pri); }
-    .mode-toggle.active { border-color: var(--green); color: var(--green); }
+    .mode-toggle.active { background: rgba(34, 197, 94, 0.1); border-color: var(--green); color: var(--green); }
 
     /* ========================================
-       Timeline (view mode)
+       Conflict Banner
+    ======================================== */
+    .conflict-banner {
+      width: 100%;
+      max-width: 1100px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--red);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--red);
+      font-size: 0.85rem;
+      margin-bottom: 24px;
+      display: none;
+    }
+    .conflict-banner.visible { display: flex; align-items: center; gap: 8px; }
+
+    /* ========================================
+       Projects Section
+    ======================================== */
+    #projects-container {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+
+    .project-section {
+      width: 100%;
+    }
+
+    .project-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .project-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .project-meta {
+      font-size: 0.75rem;
+      color: var(--text-sec);
+    }
+
+    /* ========================================
+       Timeline
     ======================================== */
     .timeline {
       display: flex;
       flex-wrap: wrap;
-      justify-content: flex-start;
-      align-items: center;
-      gap: 12px;
+      justify-content: center; /* Centering cards */
+      gap: 16px;
+      width: 100%;
     }
 
     .phase {
       position: relative;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px 18px;
-      padding-top: 22px;
+      border-radius: 10px;
+      padding: 16px 20px;
+      padding-top: 28px;
       min-width: 140px;
       max-width: 180px;
       text-align: center;
       flex: 1 1 140px;
       cursor: pointer;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      transition: all 0.2s;
       user-select: none;
+    }
+
+    .phase:hover {
+      border-color: var(--text-sec);
+      transform: translateY(-2px);
     }
 
     .phase .checkbox {
       position: absolute;
-      top: 10px;
+      top: 12px;
       left: 12px;
     }
 
     .phase .checkbox input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       cursor: pointer;
-      border: 1.5px solid var(--border);
+      border: 2px solid var(--border);
       border-radius: 4px;
-      background: transparent;
       appearance: none;
       -webkit-appearance: none;
       position: relative;
-      transition: border-color 0.15s;
+      transition: all 0.2s;
+    }
+
+    .phase .checkbox input[type="checkbox"]:checked {
+      background-color: var(--border);
     }
 
     .phase .checkbox input[type="checkbox"]::after {
-      content: '';
+      content: '✓';
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%) scale(0);
-      width: 10px;
-      height: 10px;
-      border-radius: 2px;
-      transition: transform 0.15s, background-color 0.15s;
+      font-size: 12px;
+      color: white;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    .phase .checkbox input[type="checkbox"]:checked::after {
-      transform: translate(-50%, -50%) scale(1);
-    }
-
-    .phase.done    .checkbox input[type="checkbox"]                       { border-color: var(--border); }
-    .phase.done    .checkbox input[type="checkbox"]:checked::after      { background-color: var(--border); }
-    .phase.current .checkbox input[type="checkbox"]                       { border-color: var(--green); }
-    .phase.current .checkbox input[type="checkbox"]:checked::after      { background-color: var(--green); }
-    .phase.warning .checkbox input[type="checkbox"]                       { border-color: var(--orange); }
-    .phase.warning .checkbox input[type="checkbox"]:checked::after      { background-color: var(--orange); }
-    .phase.urgent  .checkbox input[type="checkbox"]                       { border-color: var(--red); }
-    .phase.urgent  .checkbox input[type="checkbox"]:checked::after       { background-color: var(--red); }
-
-    .phase .title     { font-size: 0.875rem; font-weight: 600; color: var(--text-pri); margin-bottom: 4px; }
-    .phase .date      { font-size: 0.65rem;   color: var(--text-sec); margin-bottom: 10px; }
-    .phase .header    { font-size: 0.65rem;   font-weight: 600; letter-spacing: 0.08em; color: var(--text-sec); }
-    .phase .days      { font-size: 2.2rem;    font-weight: 700; line-height: 1; color: var(--text-sec); margin-bottom: 2px; }
-    .phase .days-unit { font-size: 0.6rem;    font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-sec); }
-
-    .phase.done {
-      border-color: var(--border);
-    }
-    .phase.done .title  { color: var(--done-text); }
+    .phase.done    .checkbox input[type="checkbox"] { border-color: transparent; background-color: var(--border); }
+    .phase.done .checkbox input[type="checkbox"]::after { color: var(--border); }
+    .phase.done .title { color: var(--done-text); }
     .phase.done .header { color: var(--done-text); }
-    .phase.current {
-      border-color: var(--green);
-      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.15);
-    }
+
+    .phase.current .checkbox input[type="checkbox"] { border-color: var(--green); background-color: var(--green); }
+    .phase.current .checkbox input[type="checkbox"]::after { color: white; }
     .phase.current .header { color: var(--green); }
-    .phase.current .days   { color: var(--green); }
-    .phase.warning {
-      border-color: var(--orange);
-      box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.12);
-    }
+    .phase.current .days { color: var(--green); }
+
+    .phase.warning .checkbox input[type="checkbox"] { border-color: var(--orange); }
     .phase.warning .header { color: var(--orange); }
-    .phase.warning .days   { color: var(--orange); }
-    .phase.urgent {
-      border-color: var(--red);
-      box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.15);
-    }
-    .phase.urgent .header  { color: var(--red); }
-    .phase.urgent .days    { color: var(--red); }
+    .phase.warning .days { color: var(--orange); }
+
+    .phase.urgent .checkbox input[type="checkbox"] { border-color: var(--red); }
+    .phase.urgent .header { color: var(--red); }
+    .phase.urgent .days { color: var(--red); }
+
+    .phase .title { font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; }
+    .phase .date { font-size: 0.7rem; color: var(--text-sec); margin-bottom: 10px; }
+    .phase .header { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; color: var(--text-sec); }
+    .phase .days { font-size: 2.2rem; font-weight: 800; line-height: 1.1; color: var(--text-sec); margin-bottom: 2px; }
+    .phase .days-unit { font-size: 0.6rem; font-weight: 600; color: var(--text-sec); text-transform: uppercase; }
 
     /* ========================================
-       Editor panel
+       Editor Panel
     ======================================== */
     .editor {
       width: 100%;
       max-width: 1100px;
-      margin: 0 auto 40px;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 20px;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 60px;
     }
-    .editor .editor-head {
+    .editor-header {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      margin-bottom: 16px;
-      gap: 12px;
-      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 24px;
     }
-    .editor .editor-head h2 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-    }
+    .editor-actions { display: flex; gap: 12px; }
 
     .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
       background: var(--surface-2);
       color: var(--text-pri);
-      border: 1px solid var(--border);
-      padding: 6px 12px;
-      border-radius: 6px;
-      font: inherit;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
+      transition: all 0.2s;
     }
     .btn:hover { border-color: var(--text-pri); }
-    .btn-primary { border-color: var(--green); color: var(--green); }
-    .btn-primary:hover { background: rgba(34, 197, 94, 0.1); }
-    .btn-danger { border-color: var(--red); color: var(--red); }
+    .btn-primary { background: var(--green); color: white; border-color: var(--green); }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-danger { color: var(--red); }
     .btn-danger:hover { background: rgba(239, 68, 68, 0.1); }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    .editor .editor-rows {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    /* Project editor */
     .proj-row {
       display: grid;
-      grid-template-columns: 2fr 1fr 36px;
-      gap: 8px;
-      align-items: center;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
       background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 10px;
-      margin-bottom: 8px;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      align-items: center;
     }
     .proj-row input {
       background: var(--bg);
       border: 1px solid var(--border);
       color: var(--text-pri);
-      padding: 6px 8px;
-      border-radius: 4px;
-      font: inherit;
-      font-size: 0.85rem;
-      font-family: inherit;
-      width: 100%;
-    }
-    .proj-row input:focus {
-      outline: none;
-      border-color: var(--green);
-    }
-    .proj-row .del {
-      background: transparent;
-      color: var(--text-sec);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      width: 28px;
-      height: 28px;
-      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 6px;
       font-size: 1rem;
-      line-height: 1;
-      transition: color 0.15s, border-color 0.15s;
     }
-    .proj-row .del:hover { color: var(--red); border-color: var(--red); }
 
-    /* Phase editor per project */
-    .phase-edit-block {
-      margin-bottom: 16px;
-      padding: 12px;
+    .phase-edit-group {
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
     }
-    .phase-edit-block .proj-label {
-      font-size: 0.75rem;
-      font-weight: 600;
+    .phase-edit-group .group-title {
+      font-size: 0.85rem;
       color: var(--text-sec);
-      margin-bottom: 8px;
-      letter-spacing: 0.06em;
-    }
-    .phase-rows {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+      margin-bottom: 12px;
+      display: block;
     }
     .edit-row {
       display: grid;
       grid-template-columns: 1fr 100px 100px 36px;
       gap: 8px;
+      margin-bottom: 8px;
       align-items: center;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 6px 10px;
     }
     .edit-row input {
-      background: var(--bg);
+      background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text-pri);
       padding: 6px 8px;
       border-radius: 4px;
-      font: inherit;
       font-size: 0.85rem;
-      font-family: inherit;
-      width: 100%;
-    }
-    .edit-row input:focus {
-      outline: none;
-      border-color: var(--green);
-    }
-    .edit-row input.date {
-      text-align: center;
-      font-variant-numeric: tabular-nums;
     }
     .edit-row .del {
+      width: 32px;
+      height: 32px;
       background: transparent;
+      border: none;
       color: var(--text-sec);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      width: 28px;
-      height: 28px;
       cursor: pointer;
-      font-size: 1rem;
-      line-height: 1;
-      transition: color 0.15s, border-color 0.15s;
+      font-size: 1.2rem;
     }
-    .edit-row .del:hover { color: var(--red); border-color: var(--red); }
+    .edit-row .del:hover { color: var(--red); }
 
-    .add-row {
+    .add-btn {
       width: 100%;
-      background: transparent;
-      color: var(--text-sec);
-      border: 1px dashed var(--border);
-      border-radius: 6px;
       padding: 10px;
-      font: inherit;
-      font-size: 0.8rem;
-      cursor: pointer;
-      margin-top: 4px;
-      transition: color 0.15s, border-color 0.15s;
-    }
-    .add-row:hover { color: var(--green); border-color: var(--green); }
-
-    .editor-foot {
-      margin-top: 14px;
-      font-size: 0.7rem;
+      background: transparent;
+      border: 1px dashed var(--border);
       color: var(--text-sec);
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    /* ========================================
-       Conflict banner
-    ======================================== */
-    .conflict-banner {
-      width: 100%;
-      max-width: 1100px;
-      margin: 0 auto 24px;
-      background: rgba(239, 68, 68, 0.08);
-      border: 1px solid rgba(239, 68, 68, 0.3);
       border-radius: 8px;
-      padding: 12px 16px;
-      font-size: 0.8rem;
-      color: #ef4444;
-      display: none;
+      cursor: pointer;
+      margin-bottom: 8px;
     }
-    .conflict-banner.visible { display: block; }
-    .conflict-banner strong { font-weight: 600; }
+    .add-btn:hover { color: var(--green); border-color: var(--green); }
 
-    /* ========================================
-       Responsive
-    ======================================== */
+    .editor-footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      text-align: right;
+      font-size: 0.75rem;
+      color: var(--text-sec);
+    }
+
     @media (max-width: 640px) {
-      .phase {
-        min-width: 120px;
-        flex: 1 1 120px;
-        padding: 12px 14px;
-        padding-top: 20px;
-      }
-      .edit-row { grid-template-columns: 1fr 80px 80px 32px; }
-      .proj-row { grid-template-columns: 1fr 36px; }
-      .proj-row input[type="text"] { display: none; }
-      .proj-row .proj-name-display {
-        display: block;
-        font-size: 0.85rem;
-        color: var(--text-pri);
-        padding: 6px 0;
-      }
+      .timeline { flex-direction: column; align-items: stretch; }
+      .phase { min-width: unset; max-width: none; }
+      .edit-row { grid-template-columns: 1fr 70px 70px 30px; }
+      .proj-row { grid-template-columns: 1fr auto; }
     }
   </style>
 </head>
 <body>
 
   <div class="page-header">
-    <div>
-      <div class="page-title">📋 進度追蹤</div>
-      <div class="page-hint" id="updated-at"></div>
+    <div class="title-group">
+      <span style="font-size: 1.5rem;">📋</span>
+      <div>
+        <div class="page-title">Project Timeline</div>
+        <div class="page-hint" id="updated-at">Updated：--</div>
+      </div>
     </div>
-    <button class="mode-toggle" id="mode-toggle" type="button">✎ 編輯</button>
+    <button class="mode-toggle" id="mode-toggle">✎ Edit</button>
   </div>
 
   <div class="conflict-banner" id="conflict-banner">
-    ⚠ <strong>時程衝突：</strong><span id="conflict-text"></span>
+    <span style="font-size: 1.2rem;">⚠</span>
+    <span id="conflict-text"></span>
   </div>
 
   <div id="projects-container"></div>
 
-  <div class="editor" id="editor" hidden></div>
+  <div class="editor" id="editor" hidden>
+    <div class="editor-header">
+      <h2 style="font-size: 1.1rem; font-weight: 600;">Edit Mode</h2>
+      <div class="editor-actions">
+        <button class="btn btn-primary" id="btn-save">💾 Save</button>
+        <button class="btn" id="btn-cancel">Cancel</button>
+      </div>
+    </div>
+    <div id="editor-content"></div>
+    <div class="editor-footer">
+      💡 Click Save to persist changes to <code>progress.json</code>.
+    </div>
+  </div>
 
   <script>
     /* ========================================
-       CONFIG — 編輯這個區塊來新增 / 修改專案
-       每個專案：
-         name       — 顯示名稱
-         phases     — 陣列，每項 { title, startDate, endDate }
-       直接修改儲存後，刷新瀏覽器即可。
-    ======================================== */
+       CONFIG - EMBEDDED FALLBACK
+       ★ DO NOT EDIT THIS MARKER LINE ★
+       ======================================== */
+    // @CONFIG_START
     var CONFIG = {
-      updatedAt: '2026-06-30',
+      updatedAt: '2026-07-01',
       projects: [
         {
-          name: 'TNL-口腔司 2D 動畫',
+          name: 'Project Alpha',
           phases: [
-            { title: '前置作業', startDate: '5/22', endDate: '5/23' },
-            { title: '腳本定稿', startDate: '5/28', endDate: '6/15' },
-            { title: '分鏡完稿', startDate: '6/16', endDate: '6/22' },
+            { title: 'Phase 1', startDate: '5/22', endDate: '5/23' },
+            { title: 'Phase 2', startDate: '5/28', endDate: '6/15' },
+            { title: 'Phase 3', startDate: '6/16', endDate: '6/22' },
             { title: 'A Copy',   startDate: '6/23', endDate: '6/29' },
             { title: 'B Copy',   startDate: '6/30', endDate: '7/02' },
             { title: 'Final',    startDate: '7/03', endDate: '7/05' }
           ]
         }
-        /* ══════════════════════════════════════════
-           在上方最後一個專案結尾 } 後加上逗號，
-           即可新增下一個專案，格式如下：
-           ,
-           {
-             name: '專案名稱',
-             phases: [
-               { title: '任務', startDate: 'M/D', endDate: 'M/D' }
-             ]
-           }
-           ══════════════════════════════════════════ */
       ]
     };
-
+    // @CONFIG_END
     /* ========================================
-       STATE
-    ======================================== */
-    var CHECKED_KEY = 'pt-checked';     // per-project checked index
-    var VIEW_KEY    = 'pt-edit-mode';
-    var SAVED_KEY   = 'pt-edit-draft';
+       STATE & LOGIC
+       ======================================== */
+    const CHECKED_KEY = 'tracker-checked-indices';
+    const EDIT_MODE_KEY = 'tracker-edit-mode';
+    const DRAFT_KEY = 'tracker-edit-draft';
 
-    var state = {
-      projects: [],       // loaded projects
+    let state = {
+      projects: [],
       mode: 'view',
       editDraft: null,
+      checkedIndices: {}
     };
 
-    /* ========================================
-       UTILS
-    ======================================== */
-    function parseMday(md) {
-      var p = String(md).split('/');
+    const parseMday = (md) => {
+      const p = String(md).split('/');
+      if (p.length !== 2) return new Date();
       return new Date(new Date().getFullYear(), parseInt(p[0], 10) - 1, parseInt(p[1], 10));
-    }
+    };
+    const escapeHtml = (str) => {
+      const div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
+    };
 
-    function getCheckedKey(projIdx) {
-      return CHECKED_KEY + '-' + projIdx;
-    }
-    function getCheckedIndex(projIdx) {
-      var raw = localStorage.getItem(getCheckedKey(projIdx));
-      return raw !== null ? parseInt(raw, 10) : null;
-    }
-    function setCheckedIndex(projIdx, idx) {
-      if (idx === null) localStorage.removeItem(getCheckedKey(projIdx));
-      else localStorage.setItem(getCheckedKey(projIdx), String(idx));
-    }
-
-    function getViewMode() {
-      return localStorage.getItem(VIEW_KEY) === 'edit' ? 'edit' : 'view';
-    }
-    function setViewMode(m) {
-      localStorage.setItem(VIEW_KEY, m);
-    }
-
-    function loadDraft() {
-      try {
-        var raw = localStorage.getItem(SAVED_KEY);
-        return raw ? JSON.parse(raw) : null;
-      } catch (e) { return null; }
-    }
-    function saveDraft(data) {
-      localStorage.setItem(SAVED_KEY, JSON.stringify(data));
-    }
-    function clearDraft() {
-      localStorage.removeItem(SAVED_KEY);
-    }
-
-    function escapeHtml(s) {
-      return String(s == null ? '' : s)
-        .replace(/&/g, '&')
-        .replace(/</g, '<')
-        .replace(/>/g, '>')
-        .replace(/"/g, '"')
-        .replace(/'/g, ''');
-    }
-
-    /* ========================================
-       DETECT CONFLICTS
-       (phases that overlap in time)
-    ======================================== */
     function detectConflicts(projects) {
-      // Collect all active (not-done) phases across projects
-      var active = [];
-      projects.forEach(function(proj, pi) {
-        proj.phases.forEach(function(phase, fi) {
-          var s = parseMday(phase.startDate);
-          var e = parseMday(phase.endDate);
-          active.push({ proj: proj.name, phase: phase.title, s: s, e: e, pi: pi, fi: fi });
+      const activePhases = [];
+      projects.forEach((p, pi) => {
+        p.phases.forEach((ph, fi) => {
+          const s = parseMday(ph.startDate);
+          const e = parseMday(ph.endDate);
+          activePhases.push({ name: `${p.name} [${ph.title}]`, start: s, end: e });
         });
       });
-
-      var conflicts = [];
-      for (var i = 0; i < active.length; i++) {
-        for (var j = i + 1; j < active.length; j++) {
-          var a = active[i], b = active[j];
-          // overlap: a starts before b ends AND b starts before a ends
-          if (a.s <= b.e && b.s <= a.e) {
-            var label = a.proj + '「' + a.phase + '」與 ' + b.proj + '「' + b.phase + '」時段重疊';
-            if (conflicts.indexOf(label) === -1) conflicts.push(label);
+      const conflicts = [];
+      for (let i = 0; i < activePhases.length; i++) {
+        for (let j = i + 1; j < activePhases.length; j++) {
+          const a = activePhases[i], b = activePhases[j];
+          if (a.start <= b.end && b.start <= a.end) {
+            conflicts.push(`${a.name} ↔ ${b.name}`);
           }
         }
       }
-      return conflicts;
+      return [...new Set(conflicts)];
     }
 
-    /* ========================================
-       RENDER: VIEW MODE
-    ======================================== */
-    function renderAllTimelines() {
-      var container = document.getElementById('projects-container');
-      var today = new Date();
-      var html = '';
-
-      state.projects.forEach(function(proj, projIdx) {
-        html += '<div class="project-section">';
-        html += '<div class="project-header">';
-        html += '<div class="project-title">' + escapeHtml(proj.name) + '</div>';
-        html += '<div class="project-meta">' + proj.phases.length + ' 階段</div>';
-        html += '</div>';
-        html += '<div class="timeline" data-proj="' + projIdx + '">';
-
-        var checkedIdx = getCheckedIndex(projIdx);
-
-        proj.phases.forEach(function(phase, i) {
-          var s = parseMday(phase.startDate);
-          var e = parseMday(phase.endDate);
-          var diff = Math.ceil((e - today) / 86400000);
-          var cls = 'phase';
-          var header = '';
-          var daysNum = '';
-          var daysUnit = '';
-          var isChecked = (i === checkedIdx);
-
-          if (checkedIdx !== null) {
-            if (i < checkedIdx) {
-              cls += ' done';
-              header = '完成';
-              daysNum = '✓';
-              daysUnit = '';
-            } else if (i === checkedIdx) {
-              if (diff < 0 || diff === 0) {
-                cls += ' urgent';
-                header = '已逾期';
-                daysNum = Math.abs(diff) || '0';
-              } else if (diff <= 2) {
-                cls += ' warning';
-                header = '還剩';
-                daysNum = diff;
-              } else {
-                cls += ' current';
-                header = '還剩';
-                daysNum = diff;
-              }
-              daysUnit = '天';
-            } else {
-              cls += ' pending';
-              header = '預計';
-              daysNum = Math.ceil((e - s) / 86400000) + 1;
-              daysUnit = '天';
-            }
-          } else {
-            cls += ' pending';
-            header = '預計';
-            daysNum = Math.ceil((e - s) / 86400000) + 1;
-            daysUnit = '天';
-          }
-
-          html += '<label class="' + cls + '" data-proj="' + projIdx + '" data-idx="' + i + '">';
-          html += '<div class="checkbox"><input type="checkbox"' + (isChecked ? ' checked' : '') + '></div>';
-          html += '<div class="title">' + escapeHtml(phase.title) + '</div>';
-          html += '<div class="date">' + escapeHtml(phase.startDate) + ' – ' + escapeHtml(phase.endDate) + '</div>';
-          html += '<div class="header">' + header + '</div>';
-          html += '<div class="days">' + daysNum + '</div>';
-          html += '<div class="days-unit">' + daysUnit + '</div>';
-          html += '</label>';
-        });
-
-        html += '</div></div>';
-      });
-
-      container.innerHTML = html;
-
-      // Wire up checkboxes
-      container.querySelectorAll('.phase input[type="checkbox"]').forEach(function(cb) {
-        cb.onchange = function(e) {
-          var label = e.target.closest('.phase');
-          var projIdx = parseInt(label.dataset.proj, 10);
-          var idx = parseInt(label.dataset.idx, 10);
-          setCheckedIndex(projIdx, e.target.checked ? idx : null);
-          renderAllTimelines();
-        };
-      });
-    }
-
-    /* ========================================
-       RENDER: EDIT MODE
-    ======================================== */
-    function renderEditor() {
-      var editor = document.getElementById('editor');
-      var draft = state.editDraft;
-
-      var projRows = '';
-      draft.forEach(function(proj, pi) {
-        var phaseRows = '';
-        proj.phases.forEach(function(phase, fi) {
-          phaseRows += '<div class="edit-row" data-proj="' + pi + '" data-phase="' + fi + '">';
-          phaseRows += '<input type="text" class="phase-title"   placeholder="任務名稱" value="' + escapeHtml(phase.title) + '">';
-          phaseRows += '<input type="text" class="phase-start"    placeholder="M/D"      value="' + escapeHtml(phase.startDate) + '">';
-          phaseRows += '<input type="text" class="phase-end"      placeholder="M/D"      value="' + escapeHtml(phase.endDate) + '">';
-          phaseRows += '<button class="del phase-del" type="button" title="刪除">×</button>';
-          phaseRows += '</div>';
-        });
-
-        projRows += '<div class="proj-row" data-proj="' + pi + '">';
-        projRows += '<div style="display:flex;gap:8px;align-items:center;">';
-        projRows += '<input type="text" class="proj-name" placeholder="專案名稱" value="' + escapeHtml(proj.name) + '">';
-        projRows += '<button class="del proj-del" type="button" title="刪除專案">×</button>';
-        projRows += '</div>';
-        projRows += '</div>';
-        projRows += '<div class="phase-edit-block" data-proj="' + pi + '">';
-        projRows += '<div class="phase-rows">' + phaseRows + '</div>';
-        projRows += '<button class="add-row phase-add" type="button">+ 新增任務</button>';
-        projRows += '</div>';
-      });
-
-      editor.innerHTML =
-        '<div class="editor-head">' +
-          '<h2>✎ 編輯模式</h2>' +
-          '<div class="editor-actions">' +
-            '<button class="btn btn-primary" id="btn-save" type="button">💾 儲存並下載 HTML</button>' +
-            '<button class="btn"            id="btn-cancel" type="button">取消</button>' +
-          '</div>' +
-        '</div>' +
-        '<div class="editor-rows" id="editor-rows">' +
-          projRows +
-        '</div>' +
-        '<button class="add-row" id="btn-add-proj" type="button">+ 新增專案</button>' +
-        '<div class="editor-foot">' +
-          '<span>💡 儲存後自動下載更新後的 HTML 檔案，手動覆蓋 <code>progress-tracker.html</code> 即可。</span>' +
-        '</div>';
-
-      // Project name change
-      editor.querySelectorAll('.proj-name').forEach(function(inp) {
-        inp.oninput = function(e) {
-          var pi = parseInt(e.target.closest('.proj-row').dataset.proj, 10);
-          state.editDraft[pi].name = e.target.value;
-          saveDraft(state.editDraft);
-        };
-      });
-
-      // Delete project
-      editor.querySelectorAll('.proj-del').forEach(function(btn) {
-        btn.onclick = function() {
-          var pi = parseInt(btn.closest('.proj-row').dataset.proj, 10);
-          state.editDraft.splice(pi, 1);
-          saveDraft(state.editDraft);
-          renderEditor();
-        };
-      });
-
-      // Phase field changes
-      editor.querySelectorAll('.edit-row').forEach(function(row) {
-        var pi = parseInt(row.dataset.proj, 10);
-        var fi = parseInt(row.dataset.phase, 10);
-        row.querySelector('.phase-title').oninput = function(e) {
-          state.editDraft[pi].phases[fi].title = e.target.value;
-          saveDraft(state.editDraft);
-        };
-        row.querySelector('.phase-start').oninput = function(e) {
-          state.editDraft[pi].phases[fi].startDate = e.target.value;
-          saveDraft(state.editDraft);
-        };
-        row.querySelector('.phase-end').oninput = function(e) {
-          state.editDraft[pi].phases[fi].endDate = e.target.value;
-          saveDraft(state.editDraft);
-        };
-        row.querySelector('.phase-del').onclick = function() {
-          state.editDraft[pi].phases.splice(fi, 1);
-          saveDraft(state.editDraft);
-          renderEditor();
-        };
-      });
-
-      // Add phase
-      editor.querySelectorAll('.phase-add').forEach(function(btn) {
-        btn.onclick = function() {
-          var pi = parseInt(btn.closest('.phase-edit-block').dataset.proj, 10);
-          state.editDraft[pi].phases.push({ title: '', startDate: '', endDate: '' });
-          saveDraft(state.editDraft);
-          renderEditor();
-        };
-      });
-
-      // Add project
-      document.getElementById('btn-add-proj').onclick = function() {
-        state.editDraft.push({ name: '新專案', phases: [{ title: '新任務', startDate: '7/01', endDate: '7/10' }] });
-        saveDraft(state.editDraft);
-        renderEditor();
-      };
-
-      // Cancel
-      document.getElementById('btn-cancel').onclick = function() {
-        clearDraft();
-        state.editDraft = null;
-        setViewMode('view');
-        state.mode = 'view';
-        render();
-      };
-
-      // Save → download updated HTML
-      document.getElementById('btn-save').onclick = function() {
-        // Update CONFIG in the page
-        var cfg = { updatedAt: new Date().toISOString().slice(0, 10), projects: state.editDraft };
-        var html = document.documentElement.outerHTML;
-        // Replace the CONFIG variable
-        html = html.replace(
-          /var CONFIG = \{[\s\S]*?\};(\s*\/\* ========================================\s*STATE)/,
-          'var CONFIG = ' + JSON.stringify(cfg, null, 2) + ';\n$1'
-        );
-        // Trigger download
-        var blob = new Blob([html], { type: 'text/html' });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = 'progress-tracker.html';
-        a.click();
-        URL.revokeObjectURL(url);
-
-        // Apply locally too
-        state.projects = JSON.parse(JSON.stringify(state.editDraft));
-        clearDraft();
-        state.editDraft = null;
-        setViewMode('view');
-        state.mode = 'view';
-        render();
-      };
-    }
-
-    /* ========================================
-       MAIN RENDER
-    ======================================== */
-    function render() {
-      var editor = document.getElementById('editor');
-      var container = document.getElementById('projects-container');
-      var toggle = document.getElementById('mode-toggle');
-
-      // Conflict detection (always visible)
-      var conflicts = detectConflicts(state.projects);
-      var banner = document.getElementById('conflict-banner');
-      var bannerText = document.getElementById('conflict-text');
-      if (conflicts.length > 0) {
-        banner.classList.add('visible');
-        bannerText.textContent = conflicts.join('；');
-      } else {
-        banner.classList.remove('visible');
+    async function init() {
+      try {
+        const res = await fetch('./progress.json');
+        if (res.ok) {
+          const data = await res.json();
+          state.projects = data.projects;
+          CONFIG.updatedAt = data.updatedAt;
+        } else { throw new Error(); }
+      } catch (e) {
+        console.warn('Using fallback data');
+        state.projects = JSON.parse(JSON.stringify(CONFIG.projects));
       }
 
-      if (state.mode === 'edit') {
-        container.hidden = true;
-        editor.hidden = false;
-        toggle.textContent = '✓ 完成編輯';
-        toggle.classList.add('active');
-        if (!state.editDraft) {
-          var draft = loadDraft();
-          state.editDraft = draft && draft.projects && draft.projects.length
-            ? draft.projects
-            : JSON.parse(JSON.stringify(CONFIG.projects));
+      state.mode = localStorage.getItem(EDIT_MODE_KEY) || 'view';
+      state.checkedIndices = JSON.parse(localStorage.getItem(CHECKED_KEY) || '{}');
+      const savedDraft = localStorage.getItem(DRAFT_KEY);
+      if (savedDraft) {
+        try {
+          const parsed = JSON.parse(savedDraft);
+          // Wrap legacy Array format into an object
+          state.editDraft = Array.isArray(parsed) ? { projects: parsed } : parsed;
+        } catch (e) {
+          state.editDraft = { projects: JSON.parse(JSON.stringify(state.projects)) };
         }
-        renderEditor();
       } else {
-        container.hidden = false;
-        editor.hidden = true;
-        toggle.textContent = '✎ 編輯';
-        toggle.classList.remove('active');
-        renderAllTimelines();
+        state.editDraft = { projects: JSON.parse(JSON.stringify(state.projects)) };
       }
-
-      // Updated at
-      document.getElementById('updated-at').textContent = '更新日期：' + (CONFIG.updatedAt || '—');
-    }
-
-    /* ========================================
-       BOOT
-    ======================================== */
-    (function() {
-      state.projects = JSON.parse(JSON.stringify(CONFIG.projects));
-      state.mode = getViewMode();
-      if (state.mode === 'edit') {
-        var draft = loadDraft();
-        state.editDraft = draft && draft.projects && draft.projects.length
-          ? draft.projects
-          : JSON.parse(JSON.stringify(CONFIG.projects));
-      }
-
-      document.getElementById('mode-toggle').onclick = function() {
-        if (state.mode === 'view') {
-          setViewMode('edit');
-          state.mode = 'edit';
-          state.editDraft = null;
-        } else {
-          clearDraft();
-          state.editDraft = null;
-          setViewMode('view');
-          state.mode = 'view';
-        }
-        render();
-      };
 
       render();
-    })();
-  </script>
+    }
 
+    function render() {
+      const mode = state.mode;
+      const container = document.getElementById('projects-container');
+      const editor = document.getElementById('editor');
+      const toggle = document.getElementById('mode-toggle');
+      const updatedAt = document.getElementById('updated-at');
+      const conflicts = detectConflicts(state.projects);
+
+      if (conflicts.length > 0) {
+        const banner = document.getElementById('conflict-banner');
+        banner.classList.add('visible');
+        document.getElementById('conflict-text').innerText = conflicts.join('；');
+      } else {
+        document.getElementById('conflict-banner').classList.remove('visible');
+      }
+
+      if (mode === 'edit') {
+        editor.hidden = false;
+        container.hidden = true;
+        toggle.innerText = '✓ Done Editing';
+        toggle.classList.add('active');
+        renderEditor();
+      } else {
+        editor.hidden = true;
+        container.hidden = false;
+        toggle.innerText = '✎ Edit';
+        toggle.classList.remove('active');
+        renderTimeline();
+      }
+      updatedAt.innerText = 'Updated: ' + CONFIG.updatedAt;
+    }
+
+    function renderTimeline() {
+      const container = document.getElementById('projects-container');
+      container.innerHTML = '';
+      state.projects.forEach((proj, pIdx) => {
+        const section = document.createElement('div');
+        section.className = 'project-section';
+        section.innerHTML = `
+          <div class="project-header">
+            <div class="project-title">${escapeHtml(proj.name)}</div>
+            <div class="project-meta">${proj.phases.length} phases</div>
+          </div>
+          <div class="timeline" data-proj="${pIdx}"></div>
+        `;
+        const timeline = section.querySelector('.timeline');
+        const lastChecked = state.checkedIndices[pIdx];
+
+        proj.phases.forEach((ph, phIdx) => {
+          const start = parseMday(ph.startDate);
+          const end = parseMday(ph.endDate);
+          const today = new Date(); today.setHours(0,0,0,0);
+          let cls = 'phase', header = 'Planned', days = Math.ceil((end - start) / 86400000) + 1, daysTxt = 'days', isChecked = phIdx < (lastChecked ?? -1);
+          if (lastChecked !== null) {
+            if (phIdx < lastChecked) { cls += ' done'; header = 'Done'; days = '✓'; daysTxt = ''; }
+            else if (phIdx === lastChecked) {
+              const diff = Math.ceil((end - today) / 86400000);
+              if (diff < 0) { cls += ' urgent'; header = 'Overdue'; days = Math.abs(diff) || 0; }
+              else if (diff <= 2) { cls += ' warning'; header = 'Left'; days = diff; }
+              else { cls += ' current'; header = 'Left'; days = diff; }
+            }
+          }
+          const card = document.createElement('div');
+          card.className = cls;
+          card.innerHTML = `<div class="checkbox"><input type="checkbox" ${isChecked ? 'checked' : ''}></div>
+                             <div class="title">${escapeHtml(ph.title)}</div>
+                             <div class="date">${escapeHtml(ph.startDate)} – ${escapeHtml(ph.endDate)}</div>
+                             <div class="header">${header}</div><div class="days">${days}</div><div class="days-unit">${daysTxt}</div>`;
+          card.onclick = (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            const newIdx = phIdx;
+            const currentIdx = state.checkedIndices[pIdx];
+            if (currentIdx === newIdx) state.checkedIndices[pIdx] = null; else state.checkedIndices[pIdx] = newIdx;
+            localStorage.setItem(CHECKED_KEY, JSON.stringify(state.checkedIndices));
+            renderTimeline();
+          };
+          timeline.appendChild(card);
+        });
+        container.appendChild(section);
+      });
+    }
+
+    function renderEditor() {
+      const content = document.getElementById('editor-content');
+      content.innerHTML = '';
+      state.editDraft.projects.forEach((proj, pIdx) => {
+        const group = document.createElement('div');
+        group.className = 'phase-edit-group';
+        group.innerHTML = `
+          <div class="proj-row">
+            <input type="text" class="proj-name-in" value="${escapeHtml(proj.name)}">
+            <button class="btn btn-danger proj-del-btn" data-pidx="${pIdx}">Delete Project</button>
+          </div>
+          <div class="phase-rows"></div>
+          <button class="add-btn add-phase-btn" data-pidx="${pIdx}">+ Add Phase</button>
+        `;
+        const phaseRows = group.querySelector('.phase-rows');
+        proj.phases.forEach((ph, phIdx) => {
+          const row = document.createElement('div');
+          row.className = 'edit-row';
+          row.innerHTML = `
+            <input type="text" class="ph-title-in" value="${escapeHtml(ph.title)}">
+            <input type="text" class="ph-start-in" value="${escapeHtml(ph.startDate)}">
+            <input type="text" class="ph-end-in" value="${escapeHtml(ph.endDate)}">
+            <button class="btn-del-ph btn-danger" data-pidx="${pIdx}" data-phidx="${phIdx}">×</button>
+          `;
+          phaseRows.appendChild(row);
+        });
+        content.appendChild(group);
+        const projNameInput = group.querySelector('.proj-name-in');
+        projNameInput.oninput = (e) => {
+          proj.name = e.target.value;
+          saveDraft();
+        };
+        group.querySelector('.proj-del-btn').onclick = () => {
+          state.editDraft.projects.splice(pIdx, 1);
+          saveDraft();
+          renderEditor();
+        };
+        const phaseInputs = group.querySelectorAll('.edit-row');
+        phaseInputs.forEach((rowEl, phIdx) => {
+          const titleInput = rowEl.querySelector('.ph-title-in');
+          const startInput = rowEl.querySelector('.ph-start-in');
+          const endInput   = rowEl.querySelector('.ph-end-in');
+          titleInput.oninput = (e) => { proj.phases[phIdx].title = e.target.value; saveDraft(); };
+          startInput.oninput = (e) => { proj.phases[phIdx].startDate = e.target.value; saveDraft(); };
+          endInput.oninput   = (e) => { proj.phases[phIdx].endDate = e.target.value; saveDraft(); };
+        });
+        group.querySelectorAll('.btn-del-ph').forEach(el => {
+          el.onclick = () => { proj.phases.splice(el.dataset.phidx, 1); saveDraft(); renderEditor(); };
+        });
+        group.querySelector('.add-phase-btn').onclick = () => { proj.phases.push({ title: '', startDate: '', endDate: '' }); saveDraft(); renderEditor(); };
+      });
+      const addProjBtn = document.createElement('button');
+      addProjBtn.className = 'add-btn';
+      addProjBtn.innerText = '+ Add Project';
+      addProjBtn.onclick = () => { state.editDraft.projects.push({ name: 'New Project', phases: [{ title: '', startDate: '', endDate: '' }] }); saveDraft(); renderEditor(); };
+      content.appendChild(addProjBtn);
+    }
+
+    function saveDraft() { localStorage.setItem(DRAFT_KEY, JSON.stringify(state.editDraft)); }
+
+    document.getElementById('mode-toggle').onclick = () => {
+      state.mode = (state.mode === 'view' ? 'edit' : 'view');
+      localStorage.setItem(EDIT_MODE_KEY, state.mode);
+      if (state.mode === 'view') {
+        localStorage.removeItem(DRAFT_KEY);
+        state.editDraft = JSON.parse(JSON.stringify(state.projects));
+      }
+      render();
+    };
+    document.getElementById('btn-cancel').onclick = () => {
+      localStorage.removeItem(DRAFT_KEY);
+      state.mode = 'view';
+      localStorage.setItem(EDIT_MODE_KEY, 'view');
+      render();
+    };
+
+    document.getElementById('btn-save').onclick = async () => {
+      const btn = document.getElementById('btn-save');
+      const originalText = btn.innerText;
+      btn.disabled = true;
+      btn.innerText = 'Saving...';
+
+      const newCfg = {
+        updatedAt: new Date().toISOString().slice(0, 10),
+        projects: state.editDraft.projects,
+        checkedIndices: state.checkedIndices
+      };
+
+      try {
+        const res = await fetch('/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newCfg)
+        });
+        if (!res.ok) throw new Error('Server error');
+        
+        alert('Saved!');
+        state.projects = JSON.parse(JSON.stringify(newCfg.projects));
+        state.checkedIndices = newCfg.checkedIndices;
+        state.mode = 'view';
+        localStorage.setItem(EDIT_MODE_KEY, 'view');
+        render();
+      } catch (e) {
+        alert('Save failed: make sure the Flask server is running.');
+        console.error(e);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = originalText;
+      }
+    };
+
+    init();
+  </script>
 </body>
 </html>

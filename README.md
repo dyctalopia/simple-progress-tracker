@@ -1,111 +1,65 @@
-## Simple Progress Tracker v1.0.3
+# Project Timeline v1.0.4
 
-A lightweight, self-contained project timeline tracker — single HTML file, no build step required.
+Lightweight, self-contained project timeline tracker — supports multiple projects in a single page, with optional Flask persistence for tri-and-edit workflows.
 
-### Changelog
-- **v1.0.3**: 加入 ✎ 編輯模式——可直接在頁面新增 / 刪除 / 修改任務名稱與日期，並透過 Flask server (`server.py`) 持久化至 `progress.json`。無 server 時自動降級為唯讀展示頁（GitHub Pages / `file://` 適用）。
-- **v1.0.2**: 當某任務被選為當前階段時，之前的任務顯示『完成 ✓』樣式
-
-
-Live demo: https://dyctalopia.github.io/simple-progress-tracker/
-
----
+Live demo (read-only, GitHub Pages): https://dyctalopia.github.io/simple-progress-tracker/
 
 ## Features
 
-- **Visual phase timeline** — cards arranged in a responsive timeline layout
-- **Status-aware coloring**:
-  - 🟢 Green — current phase, N days remaining
-  - � Yellow — current phase, ≤2 days remaining (warning)
-  - 🔴 Red — overdue
-  - ⬜ Gray — completed or pending
-- **Interactive progress** — click a card to mark that phase as "done"; progress persists in `localStorage`
-- **Dark theme** — low-eye-strain dark UI
-- **Date-driven** — no manual status editing; the JS computes everything from `startDate` / `endDate`
+- **Multiple projects in one view** — add, remove, rename and re-date projects and their phases side by side; the timeline visually highlights overlapping windows across projects.
+- **Date-driven status** — current phase, ≤2 days left, overdue, completed, and pending states are computed automatically from each phase's `startDate` / `endDate`.
+- **Inline editor** — click **✎ Edit** to add / remove / rename / re-date phases. Persist back to `progress.json` via the included Flask server.
+- **Dark theme** — minimal dark UI designed for long-running dashboards.
+- **Pure HTML + JS** — no build step, no framework, no client-side bundle. Runs from `file://`, GitHub Pages, or behind the bundled Flask server.
 
----
-
-## File Structure
+## File structure
 
 ```
 simple-progress-tracker/
-├── index.html          # Full application (HTML + CSS + JS, all-in-one)
-├── schedule.md         # Phase data source (edit this, then run sync)
-├── sync-progress.py    # Script to sync schedule.md → index.html
+├── index.html            # Front-end page (rename from progress-tracker.html)
+├── server.py             # Flask server — reads/writes progress.json
+├── tracker.bat           # One-click launcher (Windows)
+├── progress.json         # Data file (rewritten by server)
 └── README.md
 ```
 
----
-
 ## Usage
 
-### 1. Edit phases
+### Option A — Static / read-only (GitHub Pages or `file://`)
 
-Open `schedule.md` and update the phase list:
+Open `index.html` directly. The page loads the built-in default project (defined inside the `CONFIG` block in `index.html`). Editing is supported but writes only persist in `localStorage`; for cross-session persistence set up the Flask server below.
 
-```
-[*] Phase 1    startDate: 5/22    endDate: 5/23
-[ ] Phase 2    startDate: 5/28    endDate: 6/15
-```
-
-- `[*]` marks the current (active) phase
-- `[ ]` marks upcoming phases
-- Dates use `M/D` format; the current year is inferred automatically
-
-### 2. Sync to HTML
-
-```bash
-python sync-progress.py
-```
-
-This injects the updated title and phase data into `index.html`.
-
-### 3. Deploy (GitHub Pages — static read-only mode)
-
-When served from GitHub Pages or any plain static host, the page automatically detects that no local server is available and falls back to the built-in default phases defined inside `index.html` (see `CONFIG.phases`). The Edit button is disabled in this mode.
-
-```bash
-git push origin main
-```
-
-Visit `https://<your-username>.github.io/simple-progress-tracker/` to see the live demo.
-
-### 4. Local editable mode (optional)
-
-For local use with the ✎ editor enabled:
+### Option B — Editable with persistence (local Flask server)
 
 ```bash
 python server.py
-# then open http://localhost:5000
+# or, on Windows, double-click tracker.bat
 ```
 
-The server serves `index.html` and exposes `/data` (read) and `/save`, `/reset` (write) endpoints that persist to `progress.json` in the repo root. The editor lets you add, remove, rename, and re-date phases from the page.
+The server binds to `http://127.0.0.1:5050/` by default (override with `--port NNNN`) and serves:
 
----
+- `GET /progress.json` — read current progress
+- `POST /save` — persist the editor payload to `progress.json`
 
-## How it works
+Open the page in your browser, click **✎ Edit**, modify phases, click **💾 Save**, and the server writes the changes straight to `progress.json` on disk. Refresh the page to confirm.
 
-The tracker reads the current date, compares it to each phase's `startDate`/`endDate`, and classifies each phase:
+## Status
 
-| Condition | Status |
+| Condition | Visual |
 |-----------|--------|
-| Phase is before the checked index | `done` (gray) |
-| `today` is within phase dates, >2 days left | `current` (green) |
-| `today` is within phase dates, ≤2 days left | `warning` (yellow) |
-| Phase end date has passed | `urgent` (red) |
-| Phase is after the checked index | `pending` (gray) |
+| Phase before the checked index | Gray, ✓ Done |
+| `<= 2` days from end date | Yellow, "Left: N" |
+| Active phase, more than 2 days from end | Green, "Left: N" |
+| Past end date, not yet checked as complete | Red, "Overdue: N" |
+| After the checked index | Gray, "Planned: N days" |
 
-State is saved to `localStorage` under the key `simple-progress-tracker-checked`, so closing the tab won't lose your position.
+Click a card to set/clear it as the current phase; the choice persists in `localStorage` per browser profile.
 
-> **v1.0.3 note:** The Edit-mode UI relies on `localStorage` (`tnl-oral-edit-mode`, `tnl-oral-edit-draft`) for in-progress edits and falls back to the in-page default when no `progress.json` is reachable.
+## Requirements
 
----
+- Python 3.9+
+- Flask (`pip install flask`)
 
-## Customization
+## License
 
-There are two ways to update the visible phases:
-
-1. **Quick demo / static deploy**: edit `CONFIG.phases` in `index.html` and re-deploy.
-2. **Local editable workflow**: run `python server.py`, then click ✎ Edit and persist via Save → `progress.json`.
-
-For bulk updates from a markdown spec, edit `schedule.md` and re-run `sync-progress.py`.
+MIT — see repo for full text.
