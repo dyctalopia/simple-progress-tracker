@@ -1,9 +1,5 @@
 # Project Timeline v1.0.4
 
-Lightweight, self-contained multi-project timeline tracker with optional Flask persistence for edit-and-save workflows.
-
-Live demo (read-only, GitHub Pages): https://dyctalopia.github.io/simple-progress-tracker/
-
 ## Features
 
 - **Multiple projects in one view** — all timelines visible simultaneously; overlap conflicts are computed automatically from date ranges.
