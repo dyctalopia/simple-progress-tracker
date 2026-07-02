@@ -1,7 +1,8 @@
-# Project Timeline v1.0.4
+# Project Timeline v1.0.5
 
 ## Features
 
+- **Drag to reorder projects** — drag any project section to a new position; order persists across reloads.
 - **Multiple projects in one view** — all timelines visible simultaneously; overlap conflicts are computed automatically from date ranges.
 - **Date-driven status** — current, warning (≤2 days left), overdue, done, and planned states are computed from each phase's `startDate` / `endDate`.
 - **Inline editor** — click **✎ Edit** to add / remove / rename / re-date phases. Persist back to `progress.json` via the bundled Flask server.
