@@ -1,59 +1,59 @@
 # Project Timeline v1.0.4
 
-Lightweight, self-contained project timeline tracker — supports multiple projects in a single page, with optional Flask persistence for tri-and-edit workflows.
+Lightweight, self-contained multi-project timeline tracker with optional Flask persistence for edit-and-save workflows.
 
 Live demo (read-only, GitHub Pages): https://dyctalopia.github.io/simple-progress-tracker/
 
 ## Features
 
-- **Multiple projects in one view** — add, remove, rename and re-date projects and their phases side by side; the timeline visually highlights overlapping windows across projects.
-- **Date-driven status** — current phase, ≤2 days left, overdue, completed, and pending states are computed automatically from each phase's `startDate` / `endDate`.
-- **Inline editor** — click **✎ Edit** to add / remove / rename / re-date phases. Persist back to `progress.json` via the included Flask server.
-- **Dark theme** — minimal dark UI designed for long-running dashboards.
-- **Pure HTML + JS** — no build step, no framework, no client-side bundle. Runs from `file://`, GitHub Pages, or behind the bundled Flask server.
+- **Multiple projects in one view** — all timelines visible simultaneously; overlap conflicts are computed automatically from date ranges.
+- **Date-driven status** — current, warning (≤2 days left), overdue, done, and planned states are computed from each phase's `startDate` / `endDate`.
+- **Inline editor** — click **✎ Edit** to add / remove / rename / re-date phases. Persist back to `progress.json` via the bundled Flask server.
+- **Dark theme** — minimal dark UI for long-running dashboards.
+- **Pure HTML + JS** — no build step, no framework. Runs from `file://`, GitHub Pages, or behind the Flask server.
 
 ## File structure
 
 ```
 simple-progress-tracker/
-├── index.html            # Front-end page (rename from progress-tracker.html)
-├── server.py             # Flask server — reads/writes progress.json
+├── index.html            # Front-end (single file, all-in-one)
+├── server.py             # Flask server — serves page, reads/writes progress.json
 ├── tracker.bat           # One-click launcher (Windows)
-├── progress.json         # Data file (rewritten by server)
+├── progress.json         # Data store (written by server)
 └── README.md
 ```
 
 ## Usage
 
-### Option A — Static / read-only (GitHub Pages or `file://`)
+### Static / read-only (GitHub Pages or `file://`)
 
-Open `index.html` directly. The page loads the built-in default project (defined inside the `CONFIG` block in `index.html`). Editing is supported but writes only persist in `localStorage`; for cross-session persistence set up the Flask server below.
+Open `index.html` directly. The page loads the built-in default project (defined in the `CONFIG` block). Editing is disabled in this mode.
 
-### Option B — Editable with persistence (local Flask server)
+### Editable with persistence (local Flask server)
 
 ```bash
+pip install flask
 python server.py
-# or, on Windows, double-click tracker.bat
+# or double-click tracker.bat (Windows)
 ```
 
-The server binds to `http://127.0.0.1:5050/` by default (override with `--port NNNN`) and serves:
+Server binds to `http://127.0.0.1:5050/`, auto-opens browser.
 
+Endpoints:
 - `GET /progress.json` — read current progress
-- `POST /save` — persist the editor payload to `progress.json`
+- `POST /save` — persist editor payload to `progress.json`
 
-Open the page in your browser, click **✎ Edit**, modify phases, click **💾 Save**, and the server writes the changes straight to `progress.json` on disk. Refresh the page to confirm.
+Click **✎ Edit**, make changes, click **💾 Save**, and the server writes changes to `progress.json` on disk.
 
-## Status
+## Status rules
 
 | Condition | Visual |
 |-----------|--------|
-| Phase before the checked index | Gray, ✓ Done |
-| `<= 2` days from end date | Yellow, "Left: N" |
-| Active phase, more than 2 days from end | Green, "Left: N" |
-| Past end date, not yet checked as complete | Red, "Overdue: N" |
-| After the checked index | Gray, "Planned: N days" |
-
-Click a card to set/clear it as the current phase; the choice persists in `localStorage` per browser profile.
+| Before checked index | Gray, ✓ Done |
+| ≤2 days from end | Yellow, "Left: N" |
+| Active phase, >2 days from end | Green, "Left: N" |
+| Past end date, not yet done | Red, "Overdue: N" |
+| After checked index | Gray, "Planned: N days" |
 
 ## Requirements
 
@@ -62,4 +62,4 @@ Click a card to set/clear it as the current phase; the choice persists in `local
 
 ## License
 
-MIT — see repo for full text.
+MIT

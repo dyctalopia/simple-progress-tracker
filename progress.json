@@ -35,6 +35,61 @@
           "title": "Final"
         }
       ]
+    },
+    {
+      "name": "Project Beta",
+      "phases": [
+        {
+          "title": "Phase 1",
+          "startDate": "7/05",
+          "endDate": "7/6"
+        },
+        {
+          "title": "Phase 2",
+          "startDate": "7/1",
+          "endDate": "7/2"
+        },
+        {
+          "title": "Phase 3",
+          "startDate": "7/2",
+          "endDate": "7/7"
+        }
+      ]
+    },
+    {
+      "name": "Project Beta",
+      "phases": [
+        {
+          "title": "Phase 1",
+          "startDate": "6/15",
+          "endDate": "6/29"
+        },
+        {
+          "title": "Phase 2",
+          "startDate": "6/30",
+          "endDate": "7/1"
+        },
+        {
+          "title": "A Copy",
+          "startDate": "7/2",
+          "endDate": "7/7"
+        }
+      ]
+    },
+    {
+      "name": "Project Gamma",
+      "phases": [
+        {
+          "title": "A Copy",
+          "startDate": "6/6",
+          "endDate": "7/1"
+        },
+        {
+          "title": "B Copy",
+          "startDate": "7/2",
+          "endDate": "7/7"
+        }
+      ]
     }
   ]
 }

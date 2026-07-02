@@ -353,7 +353,7 @@
       <span style="font-size: 1.5rem;">📋</span>
       <div>
         <div class="page-title">Project Timeline</div>
-        <div class="page-hint" id="updated-at">Updated：--</div>
+        <div class="page-hint" id="updated-at">Updated: --</div>
       </div>
     </div>
     <button class="mode-toggle" id="mode-toggle">✎ Edit</button>
@@ -488,13 +488,9 @@
       const updatedAt = document.getElementById('updated-at');
       const conflicts = detectConflicts(state.projects);
 
-      if (conflicts.length > 0) {
-        const banner = document.getElementById('conflict-banner');
-        banner.classList.add('visible');
-        document.getElementById('conflict-text').innerText = conflicts.join('；');
-      } else {
-        document.getElementById('conflict-banner').classList.remove('visible');
-      }
+      // Conflict banner is disabled (detectConflicts() retained for future use)
+      // const banner = document.getElementById('conflict-banner'); if (conflicts.length > 0) { banner.classList.add('visible'); document.getElementById('conflict-text').innerText = conflicts.join('；'); } else { banner.classList.remove('visible'); }
+      document.getElementById('conflict-banner').classList.remove('visible');
 
       if (mode === 'edit') {
         editor.hidden = false;
@@ -665,7 +661,7 @@
         localStorage.setItem(EDIT_MODE_KEY, 'view');
         render();
       } catch (e) {
-        alert('Save failed: make sure the Flask server is running.');
+        alert('Save failed: is the Flask server running?');
         console.error(e);
       } finally {
         btn.disabled = false;
